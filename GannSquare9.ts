@@ -136,15 +136,13 @@ case short:
         offset = -1;
     }
 }
-def sp = if ( sp[1] == Double.NaN, 1600, sp[1] + 2 ); 
-AddChartBubble( yes, sp, "s = " + state[1] );
-AddLabel( yes, "sp = " + sp );
+
 AddLabel( yes, "offset = " + offset[1] );
 AddLabel( yes, "long_entry = " + long_entry[1] );
 AddLabel( yes, "short_entry = " + short_entry[1] );
 AddLabel( yes, "trade price = " + trade_price[1] );
 AddChartBubble( long_entry, trade_price, "LE" );
-AddChartBubble( short_entry, trade_price, "SE", Color.BLUE, no );
+AddChartBubble( long_exit, trade_price, "LX", Color.BLUE, no );
 
 def hihi = HighestAll(high);
 def lolo = LowestAll(low);
@@ -196,30 +194,32 @@ then {
     gann_8x1 = Double.NaN;
 }
 
-gann_1x8.SetPaintingStrategy(PaintingStrategy.LINE);
+def plot_type = PaintingStrategy.LINE;
+def line_weight = 2;
+gann_1x8.SetPaintingStrategy(plot_type);
 gann_1x8.SetDefaultColor(Color.BLACK);
-gann_1x8.SetLineWeight(2);
-gann_1x4.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_1x8.SetLineWeight(line_weight);
+gann_1x4.SetPaintingStrategy(plot_type);
 gann_1x4.SetDefaultColor(Color.BLACK);
-gann_1x4.SetLineWeight(2);
-gann_1x3.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_1x4.SetLineWeight(line_weight);
+gann_1x3.SetPaintingStrategy(plot_type);
 gann_1x3.SetDefaultColor(Color.BLACK);
-gann_1x3.SetLineWeight(2);
-gann_1x2.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_1x3.SetLineWeight(line_weight);
+gann_1x2.SetPaintingStrategy(plot_type);
 gann_1x2.SetDefaultColor(Color.BLACK);
-gann_1x2.SetLineWeight(2);
-gann_1x1.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_1x2.SetLineWeight(line_weight);
+gann_1x1.SetPaintingStrategy(plot_type);
 gann_1x1.SetDefaultColor(Color.BLACK);
-gann_1x1.SetLineWeight(2);
-gann_2x1.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_1x1.SetLineWeight(line_weight);
+gann_2x1.SetPaintingStrategy(plot_type);
 gann_2x1.SetDefaultColor(Color.BLACK);
-gann_2x1.SetLineWeight(2);
-gann_3x1.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_2x1.SetLineWeight(line_weight);
+gann_3x1.SetPaintingStrategy(plot_type);
 gann_3x1.SetDefaultColor(Color.BLACK);
-gann_3x1.SetLineWeight(2);
-gann_4x1.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_3x1.SetLineWeight(line_weight);
+gann_4x1.SetPaintingStrategy(plot_type);
 gann_4x1.SetDefaultColor(Color.BLACK);
-gann_4x1.SetLineWeight(2);
-gann_8x1.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_4x1.SetLineWeight(line_weight);
+gann_8x1.SetPaintingStrategy(plot_type);
 gann_8x1.SetDefaultColor(Color.BLACK);
-gann_8x1.SetLineWeight(2);
+gann_8x1.SetLineWeight(line_weight);
