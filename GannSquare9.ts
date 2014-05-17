@@ -1,47 +1,117 @@
 
+
+script _kstochastic {
+
+#######################################################
+#
+# Hodorific Enterprises, inc. (c) 2009
+#
+# This Stochastic tries to simplify the user interface
+# by only requiring one number. The other numbers are
+# scaled off this one number.  
+#
+# Also this routine simplifies the graphics to show 
+# either a green or red line.  When the line changes 
+# from Red to Green under OverSold line that is your
+# buy signal. When it turns from a Green to a Red 
+# above the OverBought line that is your sell signal.
+#
+#######################################################
+
+declare lower;
+input KPeriod = 13;
+
 def priceH = high;
 def priceL = low;
 def priceC = close;
-def kPeriod = 13;
-def slowing_period = 3;
+input smoothingType = { default _SMA, _EMA, _EMA2, _WMA};
+
+
 def over_bought = 80;
 def over_sold = 20;
-input smoothingType = {default SMA, EMA};
+def slowing_period = if KPeriod < 18 then 3 else RoundDown( KPeriod * 0.6, 0);
+def DPeriod = if KPeriod < 60 then 3 else RoundDown(KPeriod * 0.05, 0);
 
-def fullK = reference StochasticFull("k period" = kPeriod, "price h" = priceH, "price l" = priceL, "price c" = priceC, "slowing period" = slowing_period, "smoothing type" = smoothingType).FullK;
+def c1 = priceC - Lowest(priceL, KPeriod);
+def c2 = Highest(priceH, KPeriod) - Lowest(priceL, KPeriod);
+def FastK = c1 / c2 * 100;
 
-def fullD = reference StochasticFull("k period" = kPeriod, "price h" = priceH, "price l" = priceL, "price c" = priceC, "slowing period" = slowing_period, "smoothing type" = smoothingType).FullD;
+plot FullK;
+plot FullD;
+## Hide the trigger line to declutter the chart.
+FullD.Hide();
 
-def bLE = If(fullK crosses fullD && fullK >= over_sold, yes, no);
-def bSE = If(fullD crosses fullK && fullK <= over_bought, yes, no);
-##def bLE = If(fullK > fullD && fullK crosses above over_sold, yes, no);
-##def bSE = If(fullD < fullK && fullK crosses below over_bought, yes, no);
+switch ( smoothingType ){
+    case _SMA:
+##        smoothingType = smoothingType._SMA;
+        FullK = Average(FastK, slowing_period);
+        FullD = Average(FullK, DPeriod); 
+    case _EMA:
+##        smoothingType = smoothingType._EMA;
+        FullK = ExpAverage(FastK, slowing_period);
+        FullD = ExpAverage(FullK, DPeriod);
+     case _EMA2:
+##        smoothingType = smoothingType._EMA2;
+        FullK = EMA2(FastK, slowing_period, 0.2);
+        FullD = EMA2(FullK, DPeriod, 0.2);
+    case _WMA:
+##        smoothingType = smoothingType._WMA;
+        FullK = WMA(FastK, slowing_period);
+        FullD = WMA(FullK, DPeriod);
+}
 
-def long_exit = no;
-def short_exit = no;
+plot OverBought = over_bought;
+plot OverSold = over_sold;
+
+##FullK.AssignValueColor(  if FullK > FullD then Color.BLACK else Color.RED);
+##FullD.SetDefaultColor(GetColor(4));
+##FullK.SetLineWeight(2);
+##OverBought.SetDefaultColor(GetColor(1));
+##OverSold.SetDefaultColor(GetColor(1));
+};
+
+
+###################################
+## Gann angles - square 9
+###################################
+def priceH = high;
+def priceL = low;
+def priceC = close;
+##def kPeriod = 13;
+##def slowing_period = 3;
+def over_bought = reference _kstochastic(13).OverBought;
+def over_sold = reference _kstochastic(13).OverSold;
+
+def _fullK = reference _kstochastic(13).FullK;
+def _fullD = reference _kstochastic(13).FullD;
+
+def long_entry = If( (_fullK > _fullD) && (_fullK crosses above over_sold), yes, no);
+def short_entry = If( (_fullK < _fullD) && (_fullK crosses below over_bought), yes, no);
 
 def fan_width = 25;
 def trade_price;
 def offset;
-
 def state = {default init, long, short};
+def long_exit = If ( state[1] == state.short && short_entry, yes, no);
+def short_exit = If (  state[1] == state.long && long_entry, yes, no);;
+
 switch (state[1]) {
 case init:
-    if bLE {
+    if long_entry then {
         state = state.long;
         trade_price = priceL;
-        offset = BarNumber();
-    } else if bSE {
+        offset = 0;
+    } else if short_entry then {
         state = state.short;
         trade_price = priceH;
-        offset = BarNumber();
+        offset = 0;
     } else {
         state = state.init;
         trade_price = Double.NaN;
         offset = -1;
     }
 case long:
-    if !long_exit {
+    if !short_entry then {
         state = state.long;
         trade_price = trade_price[1];
         offset = offset[1] + 1;
@@ -52,10 +122,13 @@ case long:
         offset = -1;
     }
 case short:
-    if !short_exit {
-        state = state.short;
-        trade_price = trade_price[1];
-        offset = offset[1] + 1;
+    if !long_entry {
+        ##state = state.short;
+        ##trade_price = trade_price[1];
+        ##offset = offset[1] + 1;
+        state = state.init;
+        trade_price = Double.NaN;
+        offset = -1;
     }
     else {
         state = state.init;
@@ -63,11 +136,21 @@ case short:
         offset = -1;
     }
 }
+def sp = if ( sp[1] == Double.NaN, 1600, sp[1] + 2 ); 
+AddChartBubble( yes, sp, "s = " + state[1] );
+AddLabel( yes, "sp = " + sp );
+AddLabel( yes, "offset = " + offset[1] );
+AddLabel( yes, "long_entry = " + long_entry[1] );
+AddLabel( yes, "short_entry = " + short_entry[1] );
+AddLabel( yes, "trade price = " + trade_price[1] );
+AddChartBubble( long_entry, trade_price, "LE" );
+AddChartBubble( short_entry, trade_price, "SE", Color.BLUE, no );
 
 def hihi = HighestAll(high);
 def lolo = LowestAll(low);
+def normalize = Sqrt( Sqrt( hihi ) );
 
-def box_top = Sqrt( Sqrt( hihi ) ) * fan_width + trade_price;
+def box_top = normalize * fan_width + trade_price;
 def val_1x8;
 def val_1x4;
 def val_1x3;
@@ -78,22 +161,25 @@ plot gann_1x3;
 plot gann_1x2;
 plot gann_1x1;
 plot gann_2x1;
-##plot gann_3x1;
-##plot gann_4x1;
-##plot gann_8x1;
+plot gann_3x1;
+plot gann_4x1;
+plot gann_8x1;
 if  offset >= 0 && offset <= fan_width
 then {
-    val_1x8 = Sqrt( Sqrt( hihi ) ) * offset * 8 + trade_price;
+    val_1x8 = normalize * offset * 8 + trade_price;
     gann_1x8 = If(val_1x8 <= box_top, val_1x8, Double.NaN);
-    val_1x4 = Sqrt( Sqrt( hihi ) ) * offset * 4 + trade_price;
+    val_1x4 = normalize * offset * 4 + trade_price;
     gann_1x4 = If(val_1x4 <= box_top, val_1x4, Double.NaN);
-    val_1x3 = Sqrt( Sqrt( hihi ) ) * offset * 3 + trade_price;
+    val_1x3 = normalize * offset * 3 + trade_price;
     gann_1x3 = If(val_1x3 <= box_top, val_1x3, Double.NaN);
-    val_1x2 = Sqrt( Sqrt( hihi ) ) * offset * 2 + trade_price;
+    val_1x2 = normalize * offset * 2 + trade_price;
     gann_1x2 = If(val_1x2 <= box_top, val_1x2, Double.NaN);
 
-    gann_1x1 = Sqrt( Sqrt( hihi ) ) * offset + trade_price;
-    gann_2x1 = Sqrt( Sqrt( hihi ) ) * offset * 0.5 + trade_price;
+    gann_1x1 = normalize * offset + trade_price;
+    gann_2x1 = normalize * offset * 0.5 + trade_price;
+    gann_3x1 = normalize * offset * 0.333 + trade_price;
+    gann_4x1 = normalize * offset * 0.250 + trade_price;
+    gann_8x1 = normalize * offset * 0.125 + trade_price;
 } else {
     val_1x8 = Double.NaN;
     val_1x4 = Double.NaN;
@@ -105,9 +191,9 @@ then {
     gann_1x2 = Double.NaN;
     gann_1x1 = Double.NaN;
     gann_2x1 = Double.NaN;
-    ##gann_3x1 = Double.NaN;
-    ##gann_4x1 = Double.NaN;
-    ##gann_8x1 = Double.NaN;
+    gann_3x1 = Double.NaN;
+    gann_4x1 = Double.NaN;
+    gann_8x1 = Double.NaN;
 }
 
 gann_1x8.SetPaintingStrategy(PaintingStrategy.LINE);
@@ -128,3 +214,12 @@ gann_1x1.SetLineWeight(2);
 gann_2x1.SetPaintingStrategy(PaintingStrategy.LINE);
 gann_2x1.SetDefaultColor(Color.BLACK);
 gann_2x1.SetLineWeight(2);
+gann_3x1.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_3x1.SetDefaultColor(Color.BLACK);
+gann_3x1.SetLineWeight(2);
+gann_4x1.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_4x1.SetDefaultColor(Color.BLACK);
+gann_4x1.SetLineWeight(2);
+gann_8x1.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_8x1.SetDefaultColor(Color.BLACK);
+gann_8x1.SetLineWeight(2);
