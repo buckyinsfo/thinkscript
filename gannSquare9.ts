@@ -24,7 +24,7 @@ input KPeriod = 13;
 def priceH = high;
 def priceL = low;
 def priceC = close;
-input smoothingType = { default _SMA, _EMA, _EMA2, _WMA};
+def smoothingType = { default _SMA, _EMA, _EMA2, _WMA};
 
 
 def over_bought = 80;
@@ -41,78 +41,72 @@ plot FullD;
 ## Hide the trigger line to declutter the chart.
 FullD.Hide();
 
-switch ( smoothingType ){
+switch ( smoothingType[1] ){
     case _SMA:
-##        smoothingType = smoothingType._SMA;
+        smoothingType = smoothingType._SMA;
         FullK = Average(FastK, slowing_period);
         FullD = Average(FullK, DPeriod); 
     case _EMA:
-##        smoothingType = smoothingType._EMA;
+        smoothingType = smoothingType._EMA;
         FullK = ExpAverage(FastK, slowing_period);
         FullD = ExpAverage(FullK, DPeriod);
      case _EMA2:
-##        smoothingType = smoothingType._EMA2;
+        smoothingType = smoothingType._EMA2;
         FullK = EMA2(FastK, slowing_period, 0.2);
         FullD = EMA2(FullK, DPeriod, 0.2);
     case _WMA:
-##        smoothingType = smoothingType._WMA;
+        smoothingType = smoothingType._WMA;
         FullK = WMA(FastK, slowing_period);
         FullD = WMA(FullK, DPeriod);
 }
 
 plot OverBought = over_bought;
 plot OverSold = over_sold;
-
-FullK.AssignValueColor(  if FullK > FullD then Color.BLACK else Color.RED);
-FullD.SetDefaultColor(GetColor(4));
-FullK.SetLineWeight(2);
-OverBought.SetDefaultColor(GetColor(1));
-OverSold.SetDefaultColor(GetColor(1));
 };
 
 
 ###################################
 ## Gann angles - square 9
 ###################################
+input show_lines = { default "show 3", "show 5", "show 9" };
+input entries = { default "long", "short", "both" };
 def priceH = high;
 def priceL = low;
 def priceC = close;
-##def kPeriod = 13;
-##def slowing_period = 3;
-def over_bought = reference _kstochastic(13).OverBought;
-def over_sold = reference _kstochastic(13).OverSold;
+
+def _over_bought = reference _kstochastic(13).OverBought;
+def _over_sold = reference _kstochastic(13).OverSold;
 
 def _fullK = reference _kstochastic(13).FullK;
 def _fullD = reference _kstochastic(13).FullD;
 
-def bLE = If(_fullK > _fullD && _fullK >= over_sold, yes, no);
-def bSE = If(_fullK < _fullD && _fullK <= over_bought, yes, no);
+def long_entry = If( (_fullK > _fullD) && (_fullK crosses above _over_sold), yes, no);
+def short_entry = If( (_fullK < _fullD) && (_fullK crosses below _over_bought), yes, no);
 
-def long_exit = no;
-def short_exit = no;
-
-def fan_width = 25;
+def fan_width = 34;
 def trade_price;
 def offset;
-
 def state = {default init, long, short};
+def long_exit = If ( state[1] == state.long && short_entry, yes, no);
+def short_exit = If (  state[1] == state.short && long_entry, yes, no);;
+
 switch (state[1]) {
 case init:
-    if bLE {
+    if long_entry then {
         state = state.long;
         trade_price = priceL;
-        offset = BarNumber();
-    } else if bSE {
+        offset = 0;
+    } else if short_entry then {
         state = state.short;
         trade_price = priceH;
-        offset = BarNumber();
+        offset = 0;
     } else {
         state = state.init;
         trade_price = Double.NaN;
         offset = -1;
     }
 case long:
-    if !long_exit {
+    if !short_entry then {
         state = state.long;
         trade_price = trade_price[1];
         offset = offset[1] + 1;
@@ -123,10 +117,13 @@ case long:
         offset = -1;
     }
 case short:
-    if !short_exit {
-        state = state.short;
-        trade_price = trade_price[1];
-        offset = offset[1] + 1;
+    if !long_entry {
+        ##state = state.short;
+        ##trade_price = trade_price[1];
+        ##offset = offset[1] + 1;
+        state = state.init;
+        trade_price = Double.NaN;
+        offset = -1;
     }
     else {
         state = state.init;
@@ -135,9 +132,19 @@ case short:
     }
 }
 
+AddLabel( yes, "offset = " + offset[1] );
+AddLabel( yes, "long_entry = " + long_entry[1] );
+AddLabel( yes, "short_entry = " + short_entry[1] );
+AddLabel( yes, "trade price = " + trade_price[1] );
+AddChartBubble( long_entry, trade_price, "LE",  Color.BLUE, no );
+AddChartBubble( long_exit, trade_price, "LX", Color.RED, no );
+
 def hihi = HighestAll(high);
 def lolo = LowestAll(low);
-def normalize = Sqrt( Sqrt( hihi ) );
+##def normalize = Sqrt( Sqrt( hihi ) );
+
+def ATRLength = 13;
+def normalize = AvgTrueRange(high, close, low, ATRLength);
 
 def box_top = normalize * fan_width + trade_price;
 def val_1x8;
@@ -185,12 +192,32 @@ then {
     gann_8x1 = Double.NaN;
 }
 
-gann_1x2.SetPaintingStrategy(PaintingStrategy.LINE);
+def plot_type = PaintingStrategy.LINE;
+def line_weight = 2;
+gann_1x8.SetPaintingStrategy(plot_type);
+gann_1x8.SetDefaultColor(Color.BLACK);
+gann_1x8.SetLineWeight(line_weight);
+gann_1x4.SetPaintingStrategy(plot_type);
+gann_1x4.SetDefaultColor(Color.BLACK);
+gann_1x4.SetLineWeight(line_weight);
+gann_1x3.SetPaintingStrategy(plot_type);
+gann_1x3.SetDefaultColor(Color.BLACK);
+gann_1x3.SetLineWeight(line_weight);
+gann_1x2.SetPaintingStrategy(plot_type);
 gann_1x2.SetDefaultColor(Color.BLACK);
-gann_1x2.SetLineWeight(2);
-gann_1x1.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_1x2.SetLineWeight(line_weight);
+gann_1x1.SetPaintingStrategy(plot_type);
 gann_1x1.SetDefaultColor(Color.BLACK);
-gann_1x1.SetLineWeight(2);
-gann_2x1.SetPaintingStrategy(PaintingStrategy.LINE);
+gann_1x1.SetLineWeight(line_weight);
+gann_2x1.SetPaintingStrategy(plot_type);
 gann_2x1.SetDefaultColor(Color.BLACK);
-gann_2x1.SetLineWeight(2);
+gann_2x1.SetLineWeight(line_weight);
+gann_3x1.SetPaintingStrategy(plot_type);
+gann_3x1.SetDefaultColor(Color.BLACK);
+gann_3x1.SetLineWeight(line_weight);
+gann_4x1.SetPaintingStrategy(plot_type);
+gann_4x1.SetDefaultColor(Color.BLACK);
+gann_4x1.SetLineWeight(line_weight);
+gann_8x1.SetPaintingStrategy(plot_type);
+gann_8x1.SetDefaultColor(Color.BLACK);
+gann_8x1.SetLineWeight(line_weight);
