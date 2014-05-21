@@ -79,21 +79,21 @@ def priceL = low;
 def priceC = close;
 ##def kPeriod = 13;
 ##def slowing_period = 3;
-def over_bought = reference _kstochastic(13).OverBought;
-def over_sold = reference _kstochastic(13).OverSold;
+def _over_bought = reference _kstochastic(13).OverBought;
+def _over_sold = reference _kstochastic(13).OverSold;
 
 def _fullK = reference _kstochastic(13).FullK;
 def _fullD = reference _kstochastic(13).FullD;
 
-def long_entry = If( (_fullK > _fullD) && (_fullK crosses above over_sold), yes, no);
-def short_entry = If( (_fullK < _fullD) && (_fullK crosses below over_bought), yes, no);
+def long_entry = If( (_fullK > _fullD) && (_fullK crosses above _over_sold), yes, no);
+def short_entry = If( (_fullK < _fullD) && (_fullK crosses below _over_bought), yes, no);
 
-def fan_width = 25;
+def fan_width = 34;
 def trade_price;
 def offset;
 def state = {default init, long, short};
-def long_exit = If ( state[1] == state.short && short_entry, yes, no);
-def short_exit = If (  state[1] == state.long && long_entry, yes, no);;
+def long_exit = If ( state[1] == state.long && short_entry, yes, no);
+def short_exit = If (  state[1] == state.short && long_entry, yes, no);;
 
 switch (state[1]) {
 case init:
@@ -141,8 +141,8 @@ AddLabel( yes, "offset = " + offset[1] );
 AddLabel( yes, "long_entry = " + long_entry[1] );
 AddLabel( yes, "short_entry = " + short_entry[1] );
 AddLabel( yes, "trade price = " + trade_price[1] );
-AddChartBubble( long_entry, trade_price, "LE" );
-AddChartBubble( long_exit, trade_price, "LX", Color.BLUE, no );
+AddChartBubble( long_entry, trade_price, "LE",  Color.BLUE, no );
+AddChartBubble( long_exit, trade_price, "LX", Color.RED, no );
 
 def hihi = HighestAll(high);
 def lolo = LowestAll(low);
