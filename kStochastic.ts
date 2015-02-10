@@ -15,7 +15,7 @@
 #######################################################
 
 declare lower;
-input KPeriod = 30;
+input KPeriod = 13;
 input smoothingType = { default _SMA, _EMA, _EMA2, _WMA};
 
 def priceH = high;
@@ -99,7 +99,8 @@ else { direction = direction.down_tick;
 ##alert( alert_trigger == alert_trigger.bull, concat( GetSymbol(), " - Bull trend reversal", Alert.BAR, Sound.CHIMES );
 ##alert( alert_trigger == alert_trigger.bear_rev, concat( GetSymbol(), " - Bear trend reversal", Alert.BAR, Sound.CHIMES );
           
-FullK.AssignValueColor(  if direction == direction.up_tick then Color.BLACK else Color.RED );
+##FullK.AssignValueColor(  if direction == direction.up_tick then Color.BLACK else Color.RED );
+FullK.AssignValueColor(  if direction == direction.up_tick then Color.UPTICK else Color.DOWNTICK );
 FullD.SetDefaultColor(GetColor(4));
 FullK.SetLineWeight(2);
 OverBought.SetDefaultColor(GetColor(1));
