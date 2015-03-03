@@ -12,6 +12,9 @@
 # buy signal. When it turns from a Green to a Red 
 # above the OverBought line that is your sell signal.
 #
+# 02/10/2015 updated by Tim Sayre and Ken Hodor
+# 03/02/2015 updated by Tim Sayre - implemented alert section.
+#
 #######################################################
 
 declare lower;
@@ -78,29 +81,29 @@ else if ( FullK > FullD )
 then { trend = trend.up; }
 else { trend = trend.down; }
 
-##def alert_trigger = { default off, bull_rev, bear_rev );
+def alert_trigger = { default alert_off, bull_rev, bear_rev };
 def direction = { default up_tick, down_tick };
 if ( trend == trend.bull_rev && trend[1] != trend.bull_rev ) {
     ## fire alert and flip color
-	##alert_trigger = alert_trigger.bull_rev;
+    alert_trigger = alert_trigger.bull_rev;
     direction = direction.down_tick;
 }
 else if ( trend == trend.bear_rev && trend[1] != trend.bear_rev ) {
      ## fire alert and flip color
-     ##alert_trigger = alert_trigger.bear_rev;
-	 direction = direction.up_tick;
+     alert_trigger = alert_trigger.bear_rev;
+     direction = direction.up_tick;
 }
-else if ( trend == trend.bull_rev ) { direction = direction.up_tick; }
-else if ( trend == trend.bear_rev ) { direction = direction.down_tick; }
-else if ( FullK > FullD ) { direction = direction.up_tick; }
-else { direction = direction.down_tick;
+else if ( trend == trend.bull_rev ) { direction = direction.up_tick; alert_trigger = alert_trigger.alert_off; }
+else if ( trend == trend.bear_rev ) { direction = direction.down_tick; alert_trigger = alert_trigger.alert_off; }
+else if ( FullK > FullD ) { direction = direction.up_tick; alert_trigger = alert_trigger.alert_off;}
+else { direction = direction.down_tick; alert_trigger = alert_trigger.alert_off;
 }
 
-##alert( alert_trigger == alert_trigger.bull, concat( GetSymbol(), " - Bull trend reversal", Alert.BAR, Sound.CHIMES );
-##alert( alert_trigger == alert_trigger.bear_rev, concat( GetSymbol(), " - Bear trend reversal", Alert.BAR, Sound.CHIMES );
+alert( alert_trigger == alert_trigger.bull_rev, concat( GetSymbol(), " - Bull trend reversal"), Alert.BAR, Sound.CHIMES );
+alert( alert_trigger == alert_trigger.bear_rev, concat( GetSymbol(), " - Bear trend reversal"), Alert.BAR, Sound.CHIMES );
           
-##FullK.AssignValueColor(  if direction == direction.up_tick then Color.BLACK else Color.RED );
-FullK.AssignValueColor(  if direction == direction.up_tick then Color.UPTICK else Color.DOWNTICK );
+FullK.AssignValueColor(  if direction == direction.up_tick then Color.BLACK else Color.RED );
+##FullK.AssignValueColor(  if direction == direction.up_tick then Color.UPTICK else Color.DOWNTICK );
 FullD.SetDefaultColor(GetColor(4));
 FullK.SetLineWeight(2);
 OverBought.SetDefaultColor(GetColor(1));
