@@ -19,7 +19,6 @@
 
 declare lower;
 input KPeriod = 13;
-input smoothingType = { default _SMA, _EMA, _EMA2, _WMA};
 
 def priceH = high;
 def priceL = low;
@@ -39,20 +38,9 @@ plot FullD;
 ## Hide the trigger line to de-clutter the chart.
 FullD.Hide();
 
-switch ( smoothingType ){
-    case _SMA:
-        FullK = Average(FastK, slowing_period);
-        FullD = Average(FullK, DPeriod); 
-    case _EMA:
-        FullK = ExpAverage(FastK, slowing_period);
-        FullD = ExpAverage(FullK, DPeriod);
-     case _EMA2:
-        FullK = EMA2(FastK, slowing_period, 0.2);
-        FullD = EMA2(FullK, DPeriod, 0.2);
-    case _WMA:
-        FullK = WMA(FastK, slowing_period);
-        FullD = WMA(FullK, DPeriod);
-}
+FullK = Average(FastK, slowing_period);
+FullD = Average(FullK, DPeriod); 
+
 
 plot OverBought = over_bought;
 plot OverSold = over_sold;
@@ -105,8 +93,7 @@ alert( alert_trigger == alert_trigger.bull_rev, concat( GetSymbol(), " - Bull tr
 alert( alert_trigger == alert_trigger.bear_rev, concat( GetSymbol(), " - Bear trend reversal"), Alert.BAR, Sound.RING );
 #######################################################
 		  
-FullK.AssignValueColor(  if direction == direction.up_tick then Color.BLACK else Color.RED );
-##FullK.AssignValueColor(  if direction == direction.up_tick then Color.UPTICK else Color.DOWNTICK );
+FullK.AssignValueColor(  if direction == direction.up_tick then Color.UPTICK else Color.DOWNTICK );
 FullD.SetDefaultColor(GetColor(4));
 FullK.SetLineWeight(2);
 OverBought.SetDefaultColor(GetColor(1));
