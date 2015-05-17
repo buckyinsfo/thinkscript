@@ -13,8 +13,9 @@
 # above the OverBought line that is your sell signal.
 #
 # 02/10/2015 updated by Tim Sayre and Ken Hodor
-# 03/02/2015 updated by Tim Sayre - implemented alert section.
-#
+# 03/02/2015 updated by Tim Sayre - Implemented alert section.
+# 03/25/2015 updated by Tim Sayre - Added secondary alert to 
+#            fire when FullK crosses below 80 or above 20. 
 #######################################################
 
 declare lower;
@@ -91,7 +92,10 @@ else { direction = direction.down_tick; alert_trigger = alert_trigger.alert_off;
 
 alert( alert_trigger == alert_trigger.bull_rev, concat( GetSymbol(), " - Bull trend reversal"), Alert.BAR, Sound.RING );
 alert( alert_trigger == alert_trigger.bear_rev, concat( GetSymbol(), " - Bear trend reversal"), Alert.BAR, Sound.RING );
-#######################################################
+
+alert( FullK crosses below over_bought, concat( GetSymbol(), " - Crossed below over bought level"), Alert.BAR, Sound.RING );
+alert( FullK crosses above over_sold, concat( GetSymbol(), " - Crossed above over sold level"), Alert.BAR, Sound.RING );
+######################################################
 		  
 FullK.AssignValueColor(  if direction == direction.up_tick then Color.UPTICK else Color.DOWNTICK );
 FullD.SetDefaultColor(GetColor(4));
