@@ -15,8 +15,7 @@
 #
 #  Original Author: Ken Hodor - TradeStation Easy Language
 #  05/28/2015 converted by Tim Sayre - ThinkorSwim ThinkScript
-#  06/05/2015 updated by Tim Sayre - Testing and minor syntax changes.
-#  06/11/2015 updated by Tim Sayre - Added expansion area check.
+#  06/12/2015 updated by Tim Sayre - Testing and minor syntax changes.
 #
 ##################################################################################
 declare lower;
@@ -77,7 +76,7 @@ if  low >= low[1] and high > low then {
 State.AssignValueColor( if extreme_inside >= 1 then Color.WHITE else if State >= 0 then State.Color("Awake") else if State == 0 then State.Color("Trigger") else State.Color("Asleep"));
 State.SetLineWeight( 3 );
 
-## Background coloring ( Yellow -> Sunny/Awake & Dark Gray -> Night/Asleep
+## Background coloring ( Yellow -> Sunny/Awake & Dark_Gray -> Night/Asleep
 AddCloud( awake_factor, -awake_factor, Color.YELLOW, Color.DARK_GRAY );
 
 ## Determine overlap plot
@@ -88,8 +87,12 @@ if  low >= low[1] and high > low then {
 } else {
     over_lap = Double.NaN;  
 }
-plot OLP = if over_lap >= 1 then 0.5 else -0.5;
-OLP.AssignValueColor( if over_lap >= 1 then Color.WHITE else Color.BLACK );
+
+## Plot over_lap value as a down arrow.
+## Ignore over_lap for asleep state.
+plot OLP = if over_lap >= 1 and awake_factor == 0.5 then 0.5 else Double.NaN;    
+OLP.AssignValueColor( Color.DARK_GRAY );
+OLP.SetPaintingStrategy( PaintingStrategy.ARROW_DOWN );
 OLP.SetHiding( showOverLap );
  
 ## Add a label to the chart with ADX.
