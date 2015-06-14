@@ -33,7 +33,7 @@ input length = 14;           ## Number of bars to be used in the ADX calculation
 ##input usePlotColoring = {default TRUE, FALSE};
 
 input showOverLap = {default TRUE, FALSE};
-input showAdjustedADXPlot = {default TRUE, FALSE};
+##input showAdjustedADXPlot = {default TRUE, FALSE};
 input showADXLabel = { default TRUE, FALSE };
 
 ## Check if bar location is in expansion area.
@@ -57,7 +57,7 @@ plot State = awake_factor;
 ## Allow user input to show/hide the adjusted ADX plot.
 plot adjusted_ADX = (ADX - trigger_level) / 100;
 adjusted_ADX.AssignValueColor( if adjusted_ADX >= 0 then Color.UPTICK else Color.DOWNTICK );
-adjusted_ADX.SetHiding( showAdjustedADXPlot );
+adjusted_ADX.SetHiding( 1 );
 
 ## These color are for the line plot, not the background
 State.DefineColor("Awake", Color.YELLOW);
@@ -82,17 +82,19 @@ AddCloud( awake_factor, -awake_factor, Color.YELLOW, Color.DARK_GRAY );
 ## Determine overlap plot
 ## Calculate if the current bar is inside the previous bar.
 def over_lap;
-if  low >= low[1] and high > low then {
-    over_lap = (high[1] - low[1]) / (high - low) + (low - low[1]);
+if low > low[1] then {
+    over_lap = (low - low[1]) / ( high[1] - low[1]);
+} else if high < high[1] then {
+    over_lap = (high[1] - high) / (high[1] - low[1]);
 } else {
-    over_lap = Double.NaN;  
+    over_lap = Double.NaN;
 }
 
 ## Plot over_lap value as a down arrow.
 ## Ignore over_lap for asleep state.
-plot OLP = if over_lap >= 1 and awake_factor == 0.5 then 0.5 else Double.NaN;    
-OLP.AssignValueColor( Color.DARK_GRAY );
-OLP.SetPaintingStrategy( PaintingStrategy.ARROW_DOWN );
+plot OLP = over_lap - 0.5;    
+OLP.AssignValueColor( if over_lap >= 1 then Color.WHITE else Color.BLACK );
+OLP.SetPaintingStrategy( PaintingStrategy.LINE );
 OLP.SetHiding( showOverLap );
  
 ## Add a label to the chart with ADX.
