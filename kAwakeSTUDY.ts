@@ -16,6 +16,7 @@
 #  Original Author: Ken Hodor - TradeStation Easy Language
 #  05/28/2015 converted by Tim Sayre - ThinkorSwim ThinkScript
 #  06/12/2015 updated by Tim Sayre - Testing and minor syntax changes.
+#  06/14/2015 branch by Tim Sayre - kAwake_orig_imp.
 #
 ##################################################################################
 declare lower;
@@ -60,7 +61,7 @@ adjusted_ADX.AssignValueColor( if adjusted_ADX >= 0 then Color.UPTICK else Color
 adjusted_ADX.SetHiding( 1 );
 
 ## These color are for the line plot, not the background
-State.DefineColor("Awake", Color.YELLOW);
+State.DefineColor("Awake", Color.WHITE);
 State.DefineColor("Trigger", Color.CYAN);
 State.DefineColor("Asleep", Color.RED);
 
