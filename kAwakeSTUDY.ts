@@ -36,9 +36,9 @@ input length = 14;           ## Number of bars to be used in the ADX calculation
 ##input usePlotColoring = {default true, false};
 
 input showOverLap = {default true, false};
-input showAdjustedADXPlot = {default true, false};
+input showAdjustedADXPlot = { true, default false};
 input showADXLabel = { default true, false };
-def overlap_threshold = { 1, default 2, 3 };   ## used to trigger overlap bubbles based on the overlap_threshold >= gap up/down of a bar compared to previous bar. 
+##input overlap_threshold= 1.0; ## used to trigger overlap bubbles based on the overlap_threshold >= gap up/down of a bar compared to previous bar.  May want to change this to show 2.0 or 3.0 times previous bar length. 
 
 ## Check if bar location is in expansion area.
 def onExpansion = if isNaN( close ) then yes else no;
