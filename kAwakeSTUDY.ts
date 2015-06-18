@@ -3,15 +3,17 @@
 #  Hodorific Enterprises, inc. (c) 2015
 #
 #  This code is based on J. Welles Wilder's ADX indicator.  It is combined with an  
-#  analysis of price pull back from the previous day to indicate strength of momentum.
+#  analysis of price pull back from the previous day to indicate strength of trend.
 #  It is designed to vary background colors to indicate "awake" or "asleep" state 
-#  of the asset.  Yellow -> Sunny/Awake & Dark Gray -> Night/Asleep
+#  of the asset.  White -> Sunny/Awake & Dark Gray -> Night/Asleep
 #
 #  The coloring goes from Yellow to White "Hot" when price moves at such a rate 
-#  that we see less than 50% pull backs --market movement is very strong.  
+#  that we see less than 50% pull backs --market trend is very strong.  
 #
 #  Yellow indicates a pullback of more than 50% of the previous bar
-#  --not quite as strong. }
+#  --not quite as strong.  ( In thinkScript trigger is a double and the comparision 
+#  of ADX to the trigger is unlikely. Perhaps ADX is rounded by tradeStation in the
+#  original implementation. )
 #
 #  Original Author: Ken Hodor - TradeStation Easy Language
 #  05/28/2015 converted by Tim Sayre - ThinkorSwim ThinkScript
@@ -31,11 +33,12 @@ input length = 14;           ## Number of bars to be used in the ADX calculation
                              ## for the ADX line based on its relationship to the TriggerLevel.
 
                              ## TODO - Create a separate plot with only one color and use the SetHiding flag to flip between the two.
-##input usePlotColoring = {default TRUE, FALSE};
+##input usePlotColoring = {default true, false};
 
-input showOverLap = {default TRUE, FALSE};
-##input showAdjustedADXPlot = {default TRUE, FALSE};
-input showADXLabel = { default TRUE, FALSE };
+input showOverLap = {default true, false};
+input showAdjustedADXPlot = {default true, false};
+input showADXLabel = { default true, false };
+def overlap_threshold = { 1, default 2, 3 };   ## used to trigger overlap bubbles based on the overlap_threshold >= gap up/down of a bar compared to previous bar. 
 
 ## Check if bar location is in expansion area.
 def onExpansion = if isNaN( close ) then yes else no;
@@ -58,7 +61,7 @@ plot State = awake_factor;
 ## Allow user input to show/hide the adjusted ADX plot.
 plot adjusted_ADX = (ADX - trigger_level) / 100;
 adjusted_ADX.AssignValueColor( if adjusted_ADX >= 0 then Color.UPTICK else Color.DOWNTICK );
-adjusted_ADX.SetHiding( 1 );
+adjusted_ADX.SetHiding( showAdjustedADXPlot );
 
 ## These color are for the line plot, not the background
 State.DefineColor("Awake", Color.WHITE);
@@ -70,34 +73,44 @@ State.DefineColor("Asleep", Color.RED);
 def half_diff = (high - low) / 2;
 def extreme_inside;
 if  low >= low[1] and high > low then {
-    extreme_inside = ( (high[1] - half_diff[1]) - (low[1] + half_diff) ) / (high - low) + (low - low[1]);
+    extreme_inside =  if ( high < high[1] - half_diff[1] ) or ( low > half_diff[1] + low[1] ) then yes else no;
 } else {
-    extreme_inside = Double.NaN;  
+    extreme_inside = no;  
 }
-State.AssignValueColor( if extreme_inside >= 1 then Color.WHITE else if State >= 0 then State.Color("Awake") else if State == 0 then State.Color("Trigger") else State.Color("Asleep"));
+State.AssignValueColor( if extreme_inside  then Color.WHITE else if State >= 0 then State.Color("Awake") else if State == 0 then State.Color("Trigger") else State.Color("Asleep"));
 State.SetLineWeight( 3 );
 
-## Background coloring ( Yellow -> Sunny/Awake & Dark_Gray -> Night/Asleep
-AddCloud( awake_factor, -awake_factor, Color.YELLOW, Color.DARK_GRAY );
+## Background coloring ( White -> Sunny/Awake & Dark_Gray -> Night/Asleep
+AddCloud( awake_factor, -awake_factor, Color.WHITE, Color.DARK_GRAY );
 
 ## Determine overlap plot
 ## Calculate if the current bar is inside the previous bar.
 def over_lap;
+def gap_up;
 if low > low[1] then {
     over_lap = (low - low[1]) / ( high[1] - low[1]);
+    gap_up = yes;
 } else if high < high[1] then {
     over_lap = (high[1] - high) / (high[1] - low[1]);
+    gap_up = no;
 } else {
     over_lap = Double.NaN;
+    gap_up = Double.NaN;
 }
 
 ## Plot over_lap value as a down arrow.
 ## Ignore over_lap for asleep state.
 plot OLP = over_lap - 0.5;    
-OLP.AssignValueColor( if over_lap >= 1 then Color.WHITE else Color.BLACK );
+OLP.AssignValueColor( if over_lap >= 2 then Color.WHITE else Color.BLACK );
 OLP.SetPaintingStrategy( PaintingStrategy.LINE );
 OLP.SetHiding( showOverLap );
+##AddChartBubble( if over_lap >= overlap_threshold then yes else no, 0.5, Round( over_lap, 2 ) + "x", Color.WHITE );
+##AddVerticalLine( if over_lap >= overlap_threshold then yes else no, if gap_up then "Gap Up" else "Gap Down", Color.WHITE, Curve.SHORT_DASH );
  
+## Debug bubbles
+##AddChartBubble( if over_lap >= overlap_threshold then yes else no, over_lap, over_lap + " on high of " + high + " and h[1] of " + high[1]);
+##AddChartBubble( if over_lap >= overlap_threshold then yes else no, over_lap, over_lap + " on low of " + low );
+
 ## Add a label to the chart with ADX.
 AddLabel( !showADXLabel, concat( "ADX = ", ADX ));
 
