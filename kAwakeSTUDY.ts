@@ -86,22 +86,22 @@ AddCloud( awake_factor, -awake_factor, Color.WHITE, Color.DARK_GRAY );
 ## Determine overlap plot
 ## Calculate if the current bar is inside the previous bar.
 def over_lap;
-def gap_up;
+##def gap_up;
 if low > low[1] then {
     over_lap = (low - low[1]) / ( high[1] - low[1]);
-    gap_up = yes;
+##    gap_up = yes;
 } else if high < high[1] then {
     over_lap = (high[1] - high) / (high[1] - low[1]);
-    gap_up = no;
+##    gap_up = no;
 } else {
     over_lap = Double.NaN;
-    gap_up = Double.NaN;
+##    gap_up = Double.NaN;
 }
 
 ## Plot over_lap value as a down arrow.
 ## Ignore over_lap for asleep state.
 plot OLP = over_lap - 0.5;    
-OLP.AssignValueColor( if over_lap >= 2 then Color.WHITE else Color.BLACK );
+OLP.AssignValueColor( if over_lap >= 1 then Color.WHITE else Color.BLACK );
 OLP.SetPaintingStrategy( PaintingStrategy.LINE );
 OLP.SetHiding( showOverLap );
 ##AddChartBubble( if over_lap >= overlap_threshold then yes else no, 0.5, Round( over_lap, 2 ) + "x", Color.WHITE );
