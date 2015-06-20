@@ -36,8 +36,8 @@ input length = 14;           ## Number of bars to be used in the ADX calculation
                              ## TODO - Create a separate plot with only one color and use the SetHiding flag to flip between the two.
 ##input usePlotColoring = {default true, false};
 
-input showOverLap = {default true, false};
-input showAdjustedADXPlot = { true, default false};
+input showOverLap = { default true, false };
+input showAdjustedADXPlot = { default true, false };
 input showADXLabel = { default true, false };
 input overlap_threshold= 1.0; ## used to trigger overlap bubbles based on the overlap_threshold >= gap up/down 
                               ## of a bar compared to previous bar.  May want to change this to show 2.0 or 
