@@ -4,73 +4,52 @@ input jenkins_range = 1100000000;
 input aggregationPeriod = AggregationPeriod.DAY;
 
 def bar_vol = GetValue( volume, 0 );
+
+def length = 252;
 def cycle_rev;
 def cumulative_vol;
 def add_label;
+def bars_per_cycle;
 
-if IsNaN( cumulative_vol[1] ) then {
-    ## Account for initial state or expansion are.
-    ##cumulative_vol = temp % jenkins_range;
-    cumulative_vol = bar_vol;
-    cycle_rev = 1;
+## Only need these value at the first bar, but not sure how else to keep this tidy by 
+## using the Compound Value function w/o doing it for every bar.  the variable shouldn't 
+## be needed after so just copying the previoyus bar val into current bar value.
+def avg_daily = ( fold i = 0 to length with vol_sum = 0 do vol_sum + GetValue( volume, i ) ) / length;
+def lo_idx = GetMinValueOffset( low, length );
+def vol_to_low = CompoundValue( 1, vol_to_low[1], fold j = 0 to length - lo_idx with vol = 0 do vol + GetValue( volume, j ) );
+def cur_dir =  CompoundValue( 1, cycle_rev[1], If( floor( vol_to_low / jenkins_range ) % 2 == 0, 1, -1 ) );
 
-    ## debug
-    add_label = yes;
-} else if ( cumulative_vol[1] + bar_vol > jenkins_range )
-then {
+## If first bar then calculate based on chart lowest low.  
+## Otherwise use the previous bars value for cumulative volume.
+def hist_vol = CompoundValue( 1, cumulative_vol[1],  vol_to_low % jenkins_range );
+
+if ( hist_vol + bar_vol > jenkins_range ) then {
     ## Account for cycle reversal.
-    cumulative_vol = cumulative_vol[1] + bar_vol - jenkins_range;
-    ##cycle_rev =  (-1) * cycle_rev[1];
-    if IsNaN( cycle_rev[1] ) or cycle_rev[1] == 0.0
-    then {
-        cycle_rev = 1.0;
-    }  else {
-        cycle_rev = (-1.0) * cycle_rev[1];
-        ##cycle_rev = 2;
-    }
+    cumulative_vol = hist_vol + bar_vol - jenkins_range;
+    cycle_rev = cur_dir * (-1);
+    bars_per_cycle = 0;
     
     ## debug
     add_label = no;
 } else {
-    cumulative_vol = cumulative_vol[1] + bar_vol;
-    cycle_rev = cycle_rev[1];
-    
+    cumulative_vol = hist_vol + bar_vol;
+    cycle_rev = cur_dir;
+    bars_per_cycle = CompoundValue( 1, bars_per_cycle[1], 0 ) + 1; 
     ## debug
     add_label = no;
 }
 
 plot VolumeDivided =  If (cycle_rev == 1, 0, 1) + cycle_rev * cumulative_vol / jenkins_range;
-##plot VolumeDivided =  cumulative_vol / jenkins_range;
-VolumeDivided.SetPaintingStrategy(PaintingStrategy.TRIANGLES);
-
-
-input length = 252;
-
-def hi_bar = GetMaxValueOffset(high, length);
-def lo_bar = GetMinValueOffset(low, length);
-def hi_hi = HighestAll( high );
-def lo_lo = LowestAll( low );
-
-def off_set = length - hi_bar; ##Min( hi_bar, lo_bar );
-
-## use more recent to anchor the jenkins cycle.
-##if ( off_set == hi_bar ) then {
-
-def label;
-def vol_to_hi;
-if isNaN( vol_to_hi[1] ) then {
-    vol_to_hi = fold i = 0 to off_set with vol = 0 do vol + GetValue( volume, i );
-    label = yes;
-} else {
-    vol_to_hi = -1.0;
-    label = no;
-}
-
-
+VolumeDivided.SetPaintingStrategy(PaintingStrategy.LINE_VS_POINTS);
 
 #### debug ####    
 ##AddChartBubble( add_label, 1.0, AsText(cycle_rev, NumberFormat.TWO_DECIMAL_PLACES), Color.WHITE );
-AddChartBubble( label, 0.2, AsText(vol_to_hi, NumberFormat.TWO_DECIMAL_PLACES), Color.BLUE, no );
+##AddChartBubble( label, 0.2, AsText(init_vol, NumberFormat.TWO_DECIMAL_PLACES), Color.BLUE, no );
 
-AddLabel( yes, "Lowest Offset: " + lo_bar + " Highest Offset: " + hi_bar, Color.PLUM);
-AddLabel( yes, "Lowest: " + lo_lo + " Highest: " + hi_hi + "Volume - " + vol_to_hi, Color.PLUM);
+##def temp_dir = floor( vol_to_low / jenkins_range ) % 2;
+##AddLabel( yes, "Temp Dir - " + temp_dir, Color.PLUM);
+
+def remain = ( jenkins_range - cumulative_vol ) / avg_daily;
+AddLabel( yes, "Approx. Days Remaining - " + Round( remain, 2 ), Color.PLUM);
+
+AddLabel( yes, "Volume to Low - " + vol_to_low, Color.PLUM);
