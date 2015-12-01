@@ -17,8 +17,8 @@
 ##################################################################################
 declare lower;
 
-input jenkins_range = 1100000000;  ## Ken Hodor determined 1.1 billion shares traded fit the data set.
-def length = 252;                  ## Trading days per year.
+input jenkins_range = 1100000000;       ## Ken Hodor determined 1.1 billion shares traded fit the data set.
+input length = 252;                     ## Trading days per year.
 input showApproxDaysRemainLabel = yes;  ## Shows/Hide Label with approximate number of bars until reversal.
 
 def cycle_dir;
@@ -28,7 +28,7 @@ def debug_label;
 def bar_vol = GetValue( volume, 0 );
 
 ## Only need these values at the first bar, but not sure how else to keep this tidy except by 
-## using the Compound Value function w/o thus preventing the calculation for every bar.  
+## using the Compound Value function w/o this preventing the calculation for every bar.  
 ## The variable isn't needed afterwards so just copying the previous bar value into the current bar value.
 def avg_daily = ( fold i = 0 to length with vol_sum = 0 do vol_sum + GetValue( volume, i ) ) / length;
 def lo_idx = GetMinValueOffset( low, length );
