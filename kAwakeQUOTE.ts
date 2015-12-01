@@ -68,7 +68,7 @@ adjusted_ADX.DefineColor("Asleep", Color.RED);
 adjusted_ADX.SetHiding( yes );
 
 ## Enhancement 1 to ADX study.
-## Override the color of the plot line for State plot based 
+## Override the color of the plot line for State plot based     
 ## on extreme inside move compared to previous bar.
 def half_diff = (high - low) / 2;
 def extreme_inside;
