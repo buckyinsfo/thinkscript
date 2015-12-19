@@ -1,0 +1,100 @@
+#hint: <b>Jenkins Cycle Volume</b> \n This study indicates a possible trend reversal after the cummulative volume range specified by the user is reached.\n
+#hint jenkins_range: The number of shares traded for a trend reversal.
+#hint length: The number of trading days per year.
+##################################################################################
+##
+##  This code is based on some of the cyclic and harmonic methodology theory developed 
+##  by Michael S. Jenkins.  Ken Hodor modified the cyclic indicator based on trade volume 
+##  for the SPY and implemented his approach in TradeStation.  This is an implementation 
+##  of the approach Ken presented at the August 22, 2015 San Diego Investools Meeting.
+##
+##  Every 1.1 Billion shares of SPY traded represents a possible trend reversal.
+##
+##  Original Implementation: Ken Hodor - TradeStation Easy Language
+##  09/16/2015 Implemented by Tim Sayre - ThinkorSwim thinkScript
+##
+##   NO ACTUAL OR IMPLIED WARRANTIES OFFERED - USE AT YOUR OWN DISCRETION 
+##################################################################################
+declare upper;
+
+input jenkins_range = 1100000000;       ## Ken Hodor determined 1.1 billion shares traded fit the data set.
+input length = 252;                     ## Trading days per year.
+input showApproxDaysRemainLabel = yes;  ## Shows/Hide Label with approximate number of bars until reversal.
+
+def cycle_dir;
+def cumulative_vol;
+def debug_label;
+
+def bar_vol = GetValue( volume, 0 );
+
+## Only need these values at the first bar, but not sure how else to keep this tidy except by 
+## using the Compound Value function w/o this preventing the calculation for every bar.  
+## The variable isn't needed afterwards so just copying the previous bar value into the current bar value.
+def avg_daily = ( fold i = 0 to length with vol_sum = 0 do vol_sum + GetValue( volume, i ) ) / length;
+def lo_idx = GetMinValueOffset( low, length );
+def vol_to_low = CompoundValue( 1, vol_to_low[1], fold j = 0 to length - lo_idx with vol = 0 do vol + GetValue( volume, j ) );
+
+## Checks to see if odd or even number to determine initial direction.
+def cur_dir =  CompoundValue( 1, cycle_dir[1], If( Floor( vol_to_low / jenkins_range ) % 2 == 0, 1, -1 ) );
+
+## If it is first bar then we need to calculate initial volume based on location of lowest low bar.  
+## Otherwise we use the previous bars value for cumulative volume.
+def hist_vol = CompoundValue( 1, cumulative_vol[1],  vol_to_low % jenkins_range );
+
+## Check to see if we need to reverse direction or not.
+def peak_val;
+def peak_high;
+def peak_low;
+if ( hist_vol + bar_vol > jenkins_range ) then {
+    ## Account for cycle reversal.
+    cumulative_vol = hist_vol + bar_vol - jenkins_range;
+    cycle_dir = cur_dir * (-1);
+    
+    ## Optimized plot to display line to make it closest to horizontal.
+    ## This methodology is intended to mimic Ken Hodor's TradeStation EasyLanguage implimentation.
+
+    ##draw a line from previous Jenkins max limit to current Jenkins max limit.
+    if cycle_dir > 0 or BarNumber() == 1 then {
+        peak_val = Double.NaN;
+    } else if ( low <= peak_high[1] and low >= peak_low[1] ) then {
+        peak_val = low;            ## try to make it horizontal.
+    } else if ( peak_low[1] <= high and peak_low[1] >= low ) then {
+        peak_val = peak_low[1];    ## try to make it horizontal.
+    } else if ( high <= peak_high[1] and high >= peak_low[1]) then {
+        peak_val = high;           ## try to make it horizontal.
+    } else if ( peak_high[1] <= high and peak_high[1] >= low ) then {
+        peak_val = peak_high[1];   ## try to make it horizontal.
+    } else {                      
+        peak_val = ( high + low ) / 2;
+    }
+    peak_high = high;
+    peak_low = low;
+    
+    ## debug
+    debug_label = no;
+} else {
+    ## Not a peak so just pull previous values forward until we need them for a peak.
+    cumulative_vol = hist_vol + bar_vol;
+    cycle_dir = cur_dir;
+
+    peak_val = Double.NaN;
+    peak_high = peak_high[1];
+    peak_low = peak_low[1];
+    
+    ## debug
+    debug_label = no;
+}
+
+plot JenkinsPeak = peak_val;
+##JenkinsPeak.SetPaintingStrategy( PaintingStrategy.LINE_VS_POINTS );
+JenkinsPeak.SetLineWeight( 2 );   ## Range from 1 to 5 ThinkScript imposed.
+
+AddVerticalLine( if isNaN( peak_val ) then no else yes, Color.WHITE, Curve.SHORT_DASH );
+AddChartBubble( if isNaN( peak_val ) then no else yes, close, peak_val, Color.WHITE );
+## Display for approximate number of bars remaining in the cycle.
+##    def remain = ( jenkins_range - cumulative_vol ) / avg_daily;
+##    AddLabel( showApproxDaysRemainLabel, "Approx. Days Remaining - " + Round( remain, 2 ), Color.WHITE );
+
+#### debug #### 
+## Just change this out for other variables.   
+    AddChartBubble( debug_label, 1.0, AsText( cycle_dir, NumberFormat.TWO_DECIMAL_PLACES ), Color.WHITE );
