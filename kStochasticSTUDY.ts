@@ -1,6 +1,6 @@
 #######################################################
 #
-# Hodorific Enterprises, inc. (c) 2009 - 2015
+# Hodorific Enterprises, Inc. (c) 2009 - 2016
 #
 # This Stochastic tries to simplify the user interface
 # by only requiring one number. The other numbers are
@@ -16,10 +16,14 @@
 # 03/02/2015 updated by Tim Sayre - Implemented alert section.
 # 03/25/2015 updated by Tim Sayre - Added secondary alert to 
 #            fire when FullK crosses below 80 or above 20. 
+# 10/10/2016 updated by Tim Sayre - Updated the smoothing 
+#            constants and added vertical lines to match the
+#            TradeStation implementation.
 #######################################################
 
 declare lower;
-input KPeriod = 13;
+input kPeriod = 13;
+input showTradeLines = yes;
 
 def priceH = high;
 def priceL = low;
@@ -27,47 +31,64 @@ def priceC = close;
 
 def over_bought = 80;
 def over_sold = 20;
-def slowing_period = if KPeriod < 5 then 3 else RoundDown( KPeriod * 0.6, 0);
-def DPeriod = if KPeriod < 40 then 2 else RoundDown(KPeriod * 0.05, 0);
 
-def c1 = priceC - Lowest(priceL, KPeriod);
-def c2 = Highest(priceH, KPeriod) - Lowest(priceL, KPeriod);
+def smoothConstK = Max( 3, RoundDown( kPeriod * 0.6, 0 ));    ## constant for smoothing fast K line.
+def smoothConstD = Max( 2, RoundDown( kPeriod / 20, 0 ));     ## constant for smoothing fast D line.
+
+def c1 = priceC - Lowest(priceL, kPeriod);
+def c2 = Highest(priceH, kPeriod) - Lowest(priceL, kPeriod);
 def FastK = c1 / c2 * 100;
 
 plot FullK;
 plot FullD;
-## Hide the trigger line to de-clutter the chart.
+
+## Hide the FullD line to de-clutter the chart.
 FullD.Hide();
 
-FullK = Average(FastK, slowing_period);
-FullD = Average(FullK, DPeriod); 
-
+FullK = MovingAverage(AverageType.SIMPLE, FastK, smoothConstK);
+FullD = MovingAverage(AverageType.SIMPLE, FullK, smoothConstD);
 
 plot OverBought = over_bought;
 plot OverSold = over_sold;
 
 def trend = { default up, down, bull_rev, bear_rev };
 if ( FullK >= over_bought  ) {
-    if (trend[1] == trend.bull_rev ) 
-    then { trend = trend.bull_rev; }
+    if ( trend[1] == trend.bull_rev )
+    then {
+        trend = trend.bull_rev;
+    }
     else {
-        if ( Crosses( FullK, FullD, CrossingDirection.BELOW ) ) 
-        then { trend = trend.bull_rev; }
-        else { trend = trend.up; }
+        if ( Crosses( FullK, FullD, CrossingDirection.BELOW ) )
+        then {
+            trend = trend.bull_rev;
+        }
+        else {
+            trend = trend.up;
+        }
     }
 }
-else if ( FastK <= over_sold ) {
-    if ( trend[1] == trend.bear_rev ) 
-    then { trend = trend.bear_rev; }
-    else { 
+else if ( FullD <= over_sold ) {
+    if ( trend[1] == trend.bear_rev )
+    then {
+        trend = trend.bear_rev;
+    }
+    else {
         if ( Crosses( FullK, FullD, CrossingDirection.ABOVE ) )
-        then { trend = trend.bear_rev; }
-        else { trend = trend.down; }
+        then {
+            trend = trend.bear_rev;
+        }
+        else {
+            trend = trend.down;
+        }
     }
 }
-else if ( FullK > FullD ) 
-then { trend = trend.up; }
-else { trend = trend.down; }
+else if ( FullK > FullD )
+then {
+    trend = trend.up;
+}
+else {
+    trend = trend.down;
+}
 
 #######################################################
 # Alert Section
@@ -81,22 +102,42 @@ if ( trend == trend.bull_rev && trend[1] != trend.bull_rev ) {
 }
 else if ( trend == trend.bear_rev && trend[1] != trend.bear_rev ) {
      ## fire alert and flip color
-     alert_trigger = alert_trigger.bear_rev;
-     direction = direction.up_tick;
+    alert_trigger = alert_trigger.bear_rev;
+    direction = direction.up_tick;
 }
-else if ( trend == trend.bull_rev ) { direction = direction.up_tick; alert_trigger = alert_trigger.alert_off; }
-else if ( trend == trend.bear_rev ) { direction = direction.down_tick; alert_trigger = alert_trigger.alert_off; }
-else if ( FullK > FullD ) { direction = direction.up_tick; alert_trigger = alert_trigger.alert_off;}
-else { direction = direction.down_tick; alert_trigger = alert_trigger.alert_off;
+else if ( trend == trend.bull_rev ) {
+    direction = direction.up_tick;
+    alert_trigger = alert_trigger.alert_off;
+}
+else if ( trend == trend.bear_rev ) {
+    direction = direction.down_tick;
+    alert_trigger = alert_trigger.alert_off;
+}
+else if ( FullK > FullD ) {
+    direction = direction.up_tick;
+    alert_trigger = alert_trigger.alert_off;
+}
+else {
+    direction = direction.down_tick;
+    alert_trigger = alert_trigger.alert_off;
 }
 
-alert( alert_trigger == alert_trigger.bull_rev, concat( GetSymbol(), " - Bull trend reversal"), Alert.BAR, Sound.RING );
-alert( alert_trigger == alert_trigger.bear_rev, concat( GetSymbol(), " - Bear trend reversal"), Alert.BAR, Sound.RING );
+Alert( alert_trigger == alert_trigger.bull_rev, Concat( GetSymbol(), " - Bull trend reversal"), Alert.BAR, Sound.Ring );
+Alert( alert_trigger == alert_trigger.bear_rev, Concat( GetSymbol(), " - Bear trend reversal"), Alert.BAR, Sound.Ring );
 
-alert( FullK crosses below over_bought, concat( GetSymbol(), " - Crossed below over bought level"), Alert.BAR, Sound.RING );
-alert( FullK crosses above over_sold, concat( GetSymbol(), " - Crossed above over sold level"), Alert.BAR, Sound.RING );
+Alert( FullK crosses below over_bought, Concat( GetSymbol(), " - Crossed below over bought level"), Alert.BAR, Sound.Ring );
+Alert( FullK crosses above over_sold, Concat( GetSymbol(), " - Crossed above over sold level"), Alert.BAR, Sound.Ring );
 ######################################################
-		  
+
+######################################################
+# Vertical Line Section
+######################################################
+AddVerticalLine( if ( showTradeLines == yes && trend == trend.bull_rev &&  direction == direction.down_tick ) then yes else no, "", Color.YELLOW, Curve.FIRM );
+AddVerticalLine( if ( showTradeLines == yes && trend == trend.bear_rev &&  direction == direction.up_tick ) then yes else no, "", Color.WHITE, Curve.FIRM );
+AddVerticalLine( if ( showTradeLines == yes && Crosses( FullK, over_sold, CrossingDirection.ABOVE )) then yes else no, "", Color.DARK_GRAY, Curve.FIRM );
+AddVerticalLine( if ( showTradeLines == yes && Crosses( FullK, over_bought, CrossingDirection.BELOW )) then yes else no, "", Color.LIGHT_GRAY, Curve.FIRM );
+######################################################
+
 FullK.AssignValueColor(  if direction == direction.up_tick then Color.UPTICK else Color.DOWNTICK );
 FullD.SetDefaultColor(GetColor(4));
 FullK.SetLineWeight(2);
