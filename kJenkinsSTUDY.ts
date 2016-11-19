@@ -9,6 +9,7 @@
 ##  of the approach Ken presented at the August 22, 2015 San Diego Investools Meeting.
 ##
 ##  Every 1.1 Billion shares of SPY traded represents a possible trend reversal.
+##  (Ken switched to 950 million float or jenmins range. )
 ##
 ##  Original Implementation: Ken Hodor - TradeStation Easy Language
 ##  09/16/2015 Implemented by Tim Sayre - ThinkorSwim thinkScript
@@ -17,7 +18,7 @@
 ##################################################################################
 declare lower;
 
-input jenkins_range = 1100000000;       ## Ken Hodor determined 1.1 billion shares traded fit the data set.
+input jenkins_range = 950000000;        ## Ken Hodor determined 950 million shares traded fit the data set. (12/18/2015)
 input length = 252;                     ## Trading days per year.
 input showApproxDaysRemainLabel = yes;  ## Shows/Hide Label with approximate number of bars until reversal.
 
@@ -63,7 +64,7 @@ JenkinsVol.SetLineWeight( 2 );   ## Range from 1 to 5 ThinkScript imposed.
 
 ## Display for approximate number of bars remaining in the cycle.
 def remain = ( jenkins_range - cumulative_vol ) / avg_daily;
-AddLabel( showApproxDaysRemainLabel, "Approx. Days Remaining - " + Round( remain, 2 ), Color.WHITE );
+AddLabel( showApproxDaysRemainLabel, "Approx. Days Remaining: " + Round( remain, 2 ), Color.WHITE );
 
 #### debug #### 
 ## Just change this out for other variables.   
