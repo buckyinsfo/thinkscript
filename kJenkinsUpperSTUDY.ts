@@ -14,7 +14,7 @@
 ##################################################################################
 declare upper;
 
-input jenkins_range = 1100000000;       ## Ken Hodor determined 1.1 billion shares traded fit the data set.
+input jenkins_range = 950000000;        ## Ken Hodor determined 950 million shares traded fit the data set. (12/18/2015)
 input length = 252;                     ## Trading days per year.
 
 def cycle_dir;
