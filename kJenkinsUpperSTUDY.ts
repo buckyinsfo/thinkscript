@@ -3,7 +3,7 @@
 #hint length: The number of trading days per year.
 ##################################################################################
 ##
-##  This code is a companion script to kJenkinsSTUDY.ts.  This cdodee draws a trend 
+##  This code is a companion script to kJenkinsSTUDY.ts.  This code draws a trend 
 ##  line on the upper price chart based on the logic described in kJenkinsSTUDY.ts.
 ##  Please reference the header in thgat script for a description of the logic.
 
