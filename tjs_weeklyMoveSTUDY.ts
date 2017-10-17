@@ -1,13 +1,15 @@
-#hint: <b>Expected Move - Weekly</b> \n This study draws a expected move levels based on implied volatility.
-#hint if_proxy_notify: Add label on the chart if an ETF's volatility is used as a proxy for the future.
-#hint if_breach_notify: Add notification if the expected move is breached.
+#hint: <b>Expected Move - Weekly</b> \n This study draws the expected move levels based on implied volatility.
+#hint show_weeks: Add vertical lines to delineate weeks.
+#hint breach_notify: Add notification if the expected move is breached.
 ##################################################################################
 ##
 ##  This code is a script that will draw vertical line on the chart at the 
 ##  beginning of each week.  Then the expected move levels are drawn.
-##  1) The user may select to notify if an ETF is used as a proxy for volatilty.
+##  1) The user may select Add vertical lines to delineate weeks.
 ##  2) The user may select whether to indicate breaches of the expected move at 
 ##     expiration.
+##  3) Volitility for select futures contracts is derived from a corresponding
+##     ETF's volitility.
 ##
 ##  10/15/2017 Implemented by Tim Sayre - ThinkorSwim thinkScript
 ##
@@ -16,8 +18,8 @@
 declare hide_on_intraday;
 declare upper;
 
-input if_proxy_notify = yes;
-input if_breach_notify = yes;
+input show_weeks = yes;
+input breach_notify = yes;
 
 # implied volatility
 # using proxies for futures
@@ -33,6 +35,7 @@ else if (GetSymbol() == "/6J") then close("JYVIX") / 100
 else if (GetSymbol() == "/6B") then close("BPVIX") / 100 
 else if (GetSymbol() == "/ZN") then close("TYVIX") / 100 
 else if (GetSymbol() == "/ZW") then close("WIV") / 100
+else if (GetSymbol() == "/VX") then close("VVIX") / 100
 else if (GetSymbol() == "/ZB") then imp_volatility("TLT") 
 else if (GetSymbol() == "/ZC") then imp_volatility("CORN") 
 else if (GetSymbol() == "/ZS") then imp_volatility("SOYB") 
@@ -42,45 +45,64 @@ else if (GetSymbol() == "/6S") then imp_volatility("FXF")
 else imp_volatility();
 
 def iv_df = if ( !IsNaN( iv ) ) then iv else iv[-1];
-## $323.62 x 31.6% x SQRT (22/365) = $25.11
 
 def today = GetDayOfWeek(GetYYYYMMDD());
-def first_DOW = today >= 1 and  today[1] > today;
+def first_DOW = today >= 1 && today[1] > today;
+def wk_open;
 def exp_mv;
-def up_mv;
-def down_mv;
-if ( first_DOW ) then {
-    
-    ## Friday is day 5 minus today minus 1 more to get zero based index.
-    exp_mv = open(GetSymbol()) * iv_df * Sqrt( ( 5 - today - 1 ) / 365); 
+def up_lim;
+def down_lim;
+if ( first_DOW )
+then {
+    wk_open = open(GetSymbol());
 
-    up_mv = open ( GetSymbol() ) + exp_mv;
-    down_mv = open ( GetSymbol() ) - exp_mv;
+    ## Friday is day 5.  But since are using the regular trading hours start of 
+    ## the first day nof the week we want the end of day 5.  So we will use 
+    ## (beginning of ) day 6 - today. For example if Monday is a holiday we 
+    ## start on Tuesday day 6 minus day 2 is 4 days.  Normally it will be 
+    ## day 6 minus day 1 is 5 days.
+    exp_mv =  wk_open * iv_df * Sqrt( ( 6 - today ) / 365);
+
+    up_lim = wk_open + exp_mv;
+    down_lim = wk_open - exp_mv;
 
 } else {
+    wk_open = wk_open[1];
     exp_mv = exp_mv[1];
-    up_mv = up_mv[1];
-    down_mv = down_mv[1];
+    up_lim = up_lim[1];
+    down_lim = down_lim[1];
 }
 
-
-## Display vertical line at the begining of the week.
-AddVerticalLine( if ( first_DOW ) then yes else no, "", Color.WHITE, Curve.SHORT_DASH );
-
 ## Plot expected move levels.
-plot up_sd = up_mv;
+plot up_sd = up_lim;
 up_sd.SetPaintingStrategy( PaintingStrategy.HORIZONTAL );
 up_sd.SetDefaultColor( Color.WHITE );
 up_sd.SetLineWeight( 5 );
 
-plot down_sd = down_mv;
+plot down_sd = down_lim;
 down_sd.SetPaintingStrategy( PaintingStrategy.HORIZONTAL );
 down_sd.SetDefaultColor( Color.WHITE );
 down_sd.SetLineWeight( 5 );
 
 ## Show breach.
+def settle = close( GetSymbol() );
 
+def breaches;
+if ( today == 5 && ( up_lim < settle or settle < down_lim )  ) then {
+    breaches = CompoundValue( 1, breaches[1], 0 ) + !isNaN( close );
+} else {
+    breaches = CompoundValue( 1, breaches[1], 0 );
+}
 
+def total_wks;
+if ( first_DOW ) then {
+    total_wks = CompoundValue( 1, total_wks[1], 0 ) + !isNaN( close );
+} else {
+    total_wks = CompoundValue( 1, total_wks[1], 0 );
+}
+
+AddChartBubble( today == 5 && breach_notify && up_lim < settle, high, "Breach " + breaches, Color.YELLOW, yes );
+AddChartBubble( today == 5 && breach_notify && down_lim > settle , low, "Breach " + breaches, Color.YELLOW, no ); 
 
 ## Add label if we used an EFT proxy for Volatility.
 def is_etf;
@@ -89,14 +111,18 @@ if  (GetSymbol() == "/ZB") or
     (GetSymbol() == "/ZS") or 
     (GetSymbol() == "/KT") or
     (GetSymbol() == "/NG") or 
-    (GetSymbol() == "/6S") then {
+    (GetSymbol() == "/6S")
+then {
     is_etf = yes;
 } else {
     is_etf = no;
 }
-AddLabel( is_etf && if_proxy_notify, "Used the ETF's volatility", Color.LIGHT_GRAY );
 
+AddLabel( yes, Concat( breaches, Concat( " breaches in ", Concat( total_wks, Concat( " weeks.", if is_etf then " Used the ETF's volatility." else "" )))), Color.LIGHT_GRAY );
+
+## Display vertical line at the begining of the week.
+AddVerticalLine( first_DOW && show_weeks, total_wks, Color.WHITE, Curve.SHORT_DASH );
 
 ## Debug Stuff.
-##AddChartBubble( yes, high, df1, Color.LIGHT_GREEN, yes );
+##AddChartBubble( yes, high, iv, Color.LIGHT_GREEN, yes );
 ##AddChartBubble( yes, high, exp_mv, Color.LIGHT_RED, yes );
