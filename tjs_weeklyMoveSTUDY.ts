@@ -56,12 +56,8 @@ if ( first_DOW )
 then {
     wk_open = open(GetSymbol());
 
-    ## Friday is day 5.  But since are using the regular trading hours start of 
-    ## the first day nof the week we want the end of day 5.  So we will use 
-    ## (beginning of ) day 6 - today. For example if Monday is a holiday we 
-    ## start on Tuesday day 6 minus day 2 is 4 days.  Normally it will be 
-    ## day 6 minus day 1 is 5 days.
-    exp_mv =  wk_open * iv_df * Sqrt( ( 6 - today ) / 365);
+    ## Friday is day 5.  So make start day zero based index
+    exp_mv =  wk_open * iv_df * Sqrt( ( 5 - ( today - 1 ) ) / 365);
 
     up_lim = wk_open + exp_mv;
     down_lim = wk_open - exp_mv;
