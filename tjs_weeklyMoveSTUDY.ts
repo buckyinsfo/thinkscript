@@ -13,13 +13,13 @@
 ##     ETF's volitility.`
 ##
 ##  10/15/2017 Implemented by Tim Sayre - ThinkorSwim thinkScript
+##  11/17/2017 tjs - Added theme color select and weekly vertical line switch.
 ##
 ##   NO ACTUAL OR IMPLIED WARRANTIES OFFERED - USE AT YOUR OWN DISCRETION 
 ##################################################################################
 declare hide_on_intraday;
 declare upper;
 
-##input show_weeks = yes;
 input show_weeks = { default SHOW_WKS, HIDE_WKS, NUM_WKS };
 input bkgrnd_theme = { default DARK, LIGHT };
 input breach_notify = yes;
