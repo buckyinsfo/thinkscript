@@ -2,6 +2,7 @@
 #hint show_weeks: Add vertical lines to delineate weeks. (Values: SHOW_WKS - shows vertical line, HIDE_WKS - hides vertical line, NUM_WKS - shows verical line and weeks number label)
 #hint bkgrnd_theme: Chooose color scheme for your default background theme.
 #hint breach_notify: Add notification if the expected move is breached.
+#user_factor: Percent of expected move to use. ( ie. 1 is 100%, .7 is 70, .5 is 50% etc)
 ##################################################################################
 ##
 ##  This code is a script that will draw vertical line on the chart at the 
@@ -10,10 +11,13 @@
 ##  2) The user may select whether to indicate breaches of the expected move at 
 ##     expiration.
 ##  3) Volitility for select futures contracts is derived from a corresponding
-##     ETF's volitility.`
+##     ETF's volitility.
 ##
 ##  10/15/2017 Implemented by Tim Sayre - ThinkorSwim thinkScript
 ##  11/17/2017 tjs - Added theme color select and weekly vertical line switch.
+##  11/27/2017 tjs - Added user defined factor.  This is simply a percentage of the
+##                   calcuated expected move to be used. 
+##                   (ie. .75 is 75% of the calculated expected move.) 
 ##
 ##   NO ACTUAL OR IMPLIED WARRANTIES OFFERED - USE AT YOUR OWN DISCRETION 
 ##################################################################################
@@ -23,6 +27,12 @@ declare upper;
 input show_weeks = { default SHOW_WKS, HIDE_WKS, NUM_WKS };
 input bkgrnd_theme = { default DARK, LIGHT };
 input breach_notify = yes;
+input user_factor = 1.0;
+
+## Give the user a warning if an unusual user_factor is set.
+def valid = Between( user_factor, 0, 1.0 );
+AddLabel( !valid, "WARNING: The user factor is outside the expected range of 0 and 1.", Color.YELLOW );
+
 
 # implied volatility
 # using proxies for futures
@@ -60,7 +70,7 @@ then {
     wk_open = open(GetSymbol());
 
     ## Friday is day 5.  So make start day zero based index
-    exp_mv =  wk_open * iv_df * Sqrt( ( 5 - ( today - 1 ) ) / 360);
+    exp_mv =  wk_open * iv_df * Sqrt( ( 5 - ( today - 1 ) ) / 360) * user_factor;
 
     up_lim = wk_open + exp_mv;
     down_lim = wk_open - exp_mv;
@@ -122,7 +132,7 @@ AddLabel( breach_notify, Concat( breaches, Concat( " breaches in ", Concat( tota
 ## Display vertical line at the begining of each week.
 def show_lines = show_weeks == show_weeks.SHOW_WKS or show_weeks == show_weeks.NUM_WKS;
 def show_labels = show_weeks == show_weeks.NUM_WKS;
-AddVerticalLine( first_DOW && show_lines, if show_labels  then Concat( "WK - ", total_wks ) else "", Color.LIGHT_GRAY, Curve.SHORT_DASH );
+AddVerticalLine( first_DOW && show_lines, if show_labels && total_wks > total_wks[1] then Concat( "WK - ", total_wks ) else "", Color.LIGHT_GRAY, Curve.SHORT_DASH );
 
 ## Debug Stuff.
 ##AddChartBubble( yes, high, iv, Color.LIGHT_GREEN, yes );
