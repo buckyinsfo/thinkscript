@@ -18,10 +18,10 @@ def barAvg = (open + close + high + low) / 4;
 # overbought analysis
 def lrsOverBought = 6 * ( WMA(barAvg, turnDownBars) -  Average(barAvg, turnDownBars) ) / (turnDownBars - 1);
 def overbought =  ( (lrsOverBought > upSlope)
-				and (open > close[1])
-              	and (open > close) 
-              	and ( AbsValue(open - close) > ocSpread) )
-              	or  ( low[1] - myATR > low );
+                and (open > close[1])
+                and (open > close) 
+                and ( AbsValue(open - close) > ocSpread) )
+                or  ( low[1] - myATR > low );
 
 # oversold analysis 
 def lrsOverSold = 6 * ( WMA(barAvg, turnUpBars) -  Average(barAvg, turnUpBars) ) / (turnUpBars - 1);
