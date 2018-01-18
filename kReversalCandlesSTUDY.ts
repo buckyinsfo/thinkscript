@@ -30,7 +30,7 @@ def overbought =  ( (lrsOverBought > upSlope)
 def lrsOverSold = 6 * ( WMA(barAvg, turnUpBars) -  Average(barAvg, turnUpBars) ) / (turnUpBars - 1);
 def oversold = ( (lrsOverSold < downSlope)
                 and (open < close[1]) 
-                and (close > open)
+                and (open < close)
                 and ( AbsValue(open - close) < ocSpread) )
                 or  ( (high - close) * 3 < (close - low) );
 
