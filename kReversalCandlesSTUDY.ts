@@ -5,12 +5,7 @@
 #  Which way? Use whatever indicator you want to figure out
 #  if the market is oversold or overbought
 #
-# Ken Hodor
-#    created:   1/16/2018
-#
-#######################################
-declare upper;
-
+# Ken HodorT
 input upSlope = 0.1;
 input downSlope = -0.4;
 input turnDownBars = 8;
