@@ -84,4 +84,5 @@ if ( active > 0 && days > 1 ) then {
     volBuzz = Double.NaN;
 }
 
-plot vb = if isToday && volBuzz >= trigger then 1 else Double.NaN;
+plot vb = Round( volBuzz, 0 );
+AssignBackgroundColor( if volBuzz >= trigger then Color.YELLOW else Color.BLACK );

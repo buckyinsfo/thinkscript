@@ -11,21 +11,26 @@
 ##
 ##  A figure of -50% means the stock is trading at only half of its norm for this portion of the day. 
 ## 
-##  A figure of 0 means nothing unusual is going on in either direction. 
+##  A figure of 0% means nothing unusual is going on in either direction. 
+##
+##  This study is slightly different as it assumes 100% is normal and nothing unusual 
+##  is happening in either direction.
+##
+##  Author: Tim Sayre 06/04/2018
 ##
 #########################################################################################
 declare lower;
 
 ## Check to see if this is a daily or smaller aggregation period.
-def isInterday = If( GetAggregationPeriod() <= AggregationPeriod.DAY, yes, no );
-AddLabel( !isInterday, "The RVOL study must be viewed on an interday chart with no less than 15 minute bars.", Color.RED );
+def isInterday = If( GetAggregationPeriod() < AggregationPeriod.DAY, yes, no );
+AddLabel( !isInterday, "The volBuzz study must be viewed on an interday chart.", Color.RED );
 
-input trigger = 200; 
-input startTime = 0830; 
-input endTime = 1600; 
-input activeHours = 7.5;
-input display = yes;
-input detail = yes;
+input trigger = 150; 		## The percent level above normal as a threshold for color changes on volume.
+input startTime = 0830;     ## Desired start time each day.
+input endTime = 1600; 		## Desired end time each day.
+input activeHours = 7.5;    ## The duration between start time and end time.  Use decimal values.
+input display = yes;		## Show volume numbers as a chart label.
+input detail = yes;			## Display inputs as a chart label.
 
 def barsPerSession = activeHours * 3600 * 1000 / GetAggregationPeriod();
  
@@ -62,6 +67,7 @@ if ( active == 1 ) then {
 
 def isToday = if GetLastDay() == GetDay() then 1 else 0;
 
+## Accumulate the volume from each days corresponding bar.
 def volSum;
 if ( isToday && active > 0 ) then {
     volSum = GetValue( volSum, delta );
@@ -73,7 +79,7 @@ if ( isToday && active > 0 ) then {
 
 def volBuzz;
 if ( active > 0 && days > 1 ) then {
-    volBuzz = Round( 100 * volInst / ( volSum / days ), 0 );
+    volBuzz = Round( 100 * volInst / ( volSum / (days - 1) ), 0 );
 } else {
     volBuzz = Double.NaN;
 }
@@ -83,6 +89,12 @@ vb.SetLineWeight(3);
 vb.SetPaintingStrategy(paintingStrategy.HISTOGRAM);
 vb.AssignValueColor( if volBuzz >= trigger then Color.YELLOW else Color.GRAY );
 
+## Shade 0% - trigger
+plot range = trigger;
+range.SetDefaultColor( Color.DARK_GRAY );
+plot base = 0;
+AddCloud( range, base, Color.GRAY );
+
 AddLabel( detail, Concat( "Start: ", 
 				   Concat( startTime, 
 				   Concat( " - End: ", 
@@ -90,6 +102,21 @@ AddLabel( detail, Concat( "Start: ",
 				   Color.GRAY );
 
 AddLabel( display, "Bars per Session: " + barsPerSession, Color.GRAY );
+AddLabel( display, "Days: " + days, Color.GRAY );
 
 AddLabel( display, "Instant Volume: " + volInst, Color.GRAY );
-AddLabel( display, "Average Volume: " + volSum / days, if volBuzz >= trigger then Color.YELLOW else Color.GRAY );
+AddLabel( display, "Average Volume: " + volSum / (days - 1), if volBuzz >= trigger then Color.YELLOW else Color.GRAY );
+
+##def debug = yes;
+##AddChartBubble( debug && active == 1, 125, days, Color.LIGHT_RED, yes );
+##AddChartBubble( debug && active == 1, 125, BarNumber(), Color.LIGHT_RED, yes );
+##AddChartBubble( debug && isToday, 100, active, Color.LIGHT_GREEN, yes );
+##AddChartBubble( debug, 150,  volBuzz, Color.Red, yes );
+##AddChartBubble( debug, 75,  delta, Color.YELLOW, yes );
+
+##def secondsSince = SecondsFromTime( startTime );
+##def secondsRemain = SecondsTillTime( endTime );
+
+##plot y = if ( debug && secondsSince >= 0 && secondsRemain > 0 )  then 1 else double.NaN;
+##y.SetPaintingStrategy( PaintingStrategy.LINE_VS_SQUARES );
+##y.AssignValueColor( Color.YELLOW );
