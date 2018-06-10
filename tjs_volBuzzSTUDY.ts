@@ -19,18 +19,20 @@
 ##  Author: Tim Sayre 06/04/2018
 ##
 #########################################################################################
+#hint: This study implements Volume Buzz from Worden TC2000.
+
 declare lower;
 
 ## Check to see if this is a daily or smaller aggregation period.
 def isInterday = If( GetAggregationPeriod() < AggregationPeriod.DAY, yes, no );
 AddLabel( !isInterday, "The volBuzz study must be viewed on an interday chart.", Color.RED );
 
-input trigger = 150; 		## The percent level above normal as a threshold for color changes on volume.
-input startTime = 0830;     ## Desired start time each day.
-input endTime = 1600; 		## Desired end time each day.
-input activeHours = 7.5;    ## The duration between start time and end time.  Use decimal values.
-input display = yes;		## Show volume numbers as a chart label.
-input detail = yes;			## Display inputs as a chart label.
+input trigger = 200; 		#hint trigger: The percent level above normal as a threshold for color changes on volume.
+input startTime = 0830;     #hint startTime: Desired start time each day.
+input endTime = 1600; 		#hint endTime: Desired end time each day.
+input activeHours = 7.5;    #hint activeHours: The duration between start time and end time.\n Use decimal values.
+input display = yes;		#hint display: Show volume numbers as a chart label.
+input detail = no;			#hint detail: Display variable values as a chart label.
 
 def barsPerSession = activeHours * 3600 * 1000 / GetAggregationPeriod();
  
@@ -101,8 +103,8 @@ AddLabel( detail, Concat( "Start: ",
 				   Concat( endTime, " Central Time" ) ) ) ),
 				   Color.GRAY );
 
-AddLabel( display, "Bars per Session: " + barsPerSession, Color.GRAY );
-AddLabel( display, "Days: " + days, Color.GRAY );
+AddLabel( detail, "Bars per Session: " + barsPerSession, Color.GRAY );
+AddLabel( detail, "Days: " + days, Color.GRAY );
 
 AddLabel( display, "Instant Volume: " + volInst, Color.GRAY );
 AddLabel( display, "Average Volume: " + volSum / (days - 1), if volBuzz >= trigger then Color.YELLOW else Color.GRAY );
