@@ -21,14 +21,18 @@
 #            TradeStation implementation.
 # 11/18/2016 updated by Tim Sayre - Added Phantom buy support
 #            and capability to turn off audible alerts.
+# 02/12/2019 updated by Tim Sayre - Replace audibleAlert with
+#            audibleSell, audibleBuy and audibleConf.
 #
 #######################################################
 
 declare lower;
 input kPeriod = 13;
 input showTradeLines = yes;   ## Draw vertical lines at critical inflection points
-input audibleAlerts = yes;    ## Audible alerts at inflection points
-input phantomBuyAlert = yes;  ## Trigger inflection point on phantom buy.
+input audibleBuy = yes;       ## Audible alerts at buy inflection points.
+input audibleSell = yes;      ## Audible alerts at sell inflection points.
+input audibleConf = yes;      ## Audible alerts at confirmation levels.
+input phantomBuy = yes;       ## Trigger inflection point on phantom buy.
 
 def priceH = high;
 def priceL = low;
@@ -133,23 +137,23 @@ else {
 
 ######################################################
 # Alerts that provide a text message in the 
-# Message Center and the audible sound.
+# Message Center with audible sound.
 ######################################################
-Alert( alert_trigger == alert_trigger.bull_rev && audibleAlerts == yes, Concat( GetSymbol(), " - Bull trend reversal"), Alert.BAR, Sound.Ring );
-Alert( alert_trigger == alert_trigger.bear_rev && audibleAlerts == yes, Concat( GetSymbol(), " - Bear trend reversal"), Alert.BAR, Sound.Ring );
-Alert( FullK crosses below over_bought_level && audibleAlerts == yes, Concat( GetSymbol(), " - Crossed below over bought level"), Alert.BAR, Sound.Ring );
-Alert( FullK crosses above over_sold_level && audibleAlerts == yes, Concat( GetSymbol(), " - Crossed above over sold level"), Alert.BAR, Sound.Ring ); 
+Alert( alert_trigger == alert_trigger.bull_rev && audibleSell == yes, Concat( GetSymbol(), " - Bull trend reversal"), Alert.BAR, Sound.Chimes );
+Alert( alert_trigger == alert_trigger.bear_rev && audibleBuy == yes, Concat( GetSymbol(), " - Bear trend reversal"), Alert.BAR, Sound.Ring );
+Alert( FullK crosses below over_bought_level && audibleConf == yes, Concat( GetSymbol(), " - Crossed below over bought level"), Alert.BAR, Sound.Ding );
+Alert( FullK crosses above over_sold_level && audibleConf == yes, Concat( GetSymbol(), " - Crossed above over sold level"), Alert.BAR, Sound.Ding ); 
 ######################################################
 
 
 ######################################################
 # Alerts that provide a text message in the 
-# Message Center ONLY NO audible sound.
+# Message Center ONLY. NO audible sound.
 ######################################################
-Alert( alert_trigger == alert_trigger.bull_rev && audibleAlerts == no, Concat( GetSymbol(), " - Bull trend reversal"), Alert.BAR, Sound.NoSound );
-Alert( alert_trigger == alert_trigger.bear_rev && audibleAlerts == no, Concat( GetSymbol(), " - Bear trend reversal"), Alert.BAR, Sound.NoSound );
-Alert( FullK crosses below over_bought_level && audibleAlerts == no, Concat( GetSymbol(), " - Crossed below over bought level"), Alert.BAR, Sound.NoSound );
-Alert( FullK crosses above over_sold_level && audibleAlerts == no, Concat( GetSymbol(), " - Crossed above over sold level"), Alert.BAR, Sound.NoSound ); 
+Alert( alert_trigger == alert_trigger.bull_rev && audibleSell == no, Concat( GetSymbol(), " - Bull trend reversal"), Alert.BAR, Sound.NoSound );
+Alert( alert_trigger == alert_trigger.bear_rev && audibleBuy == no, Concat( GetSymbol(), " - Bear trend reversal"), Alert.BAR, Sound.NoSound );
+Alert( FullK crosses below over_bought_level && audibleConf == no, Concat( GetSymbol(), " - Crossed below over bought level"), Alert.BAR, Sound.NoSound );
+Alert( FullK crosses above over_sold_level && audibleConf == no, Concat( GetSymbol(), " - Crossed above over sold level"), Alert.BAR, Sound.NoSound ); 
 ######################################################
 
 
@@ -161,6 +165,7 @@ AddVerticalLine( if ( showTradeLines == yes && trend == trend.bear_rev &&  direc
 AddVerticalLine( if ( showTradeLines == yes && Crosses( FullK, over_sold_level, CrossingDirection.ABOVE )) then yes else no, "", Color.DARK_GRAY, Curve.FIRM );
 AddVerticalLine( if ( showTradeLines == yes && Crosses( FullK, over_bought_level, CrossingDirection.BELOW )) then yes else no, "", Color.LIGHT_GRAY, Curve.FIRM );
 ######################################################
+
 
 ######################################################
 # Alerts for phantom buy.
@@ -198,8 +203,8 @@ else {
     trigger = trigger.alert_off;
 }
 
-Alert( trigger == trigger.phantom_buy && audibleAlerts == no, Concat( GetSymbol(), " - Phantom buy alert" ), Alert.BAR, Sound.NoSound );
-Alert( trigger == trigger.phantom_buy && audibleAlerts == yes, Concat( GetSymbol(), " - Phantom buy alert" ), Alert.BAR, Sound.Ring );
+Alert( trigger == trigger.phantom_buy && phantomBuy == no, Concat( GetSymbol(), " - Phantom buy alert" ), Alert.BAR, Sound.NoSound );
+Alert( trigger == trigger.phantom_buy && phantomBuy == yes, Concat( GetSymbol(), " - Phantom buy alert" ), Alert.BAR, Sound.Ring );
 
 AddVerticalLine( showTradeLines == yes && trigger == trigger.phantom_buy, "", Color.LIGHT_GRAY, Curve.FIRM );
 ######################################################
