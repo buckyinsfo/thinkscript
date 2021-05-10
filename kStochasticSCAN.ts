@@ -1,11 +1,13 @@
-#######################################################
+.#######################################################
 ##
 ## Hodorific Enterprises, inc. (c) 2009 - 2015
 ##
 ## This scan code is designed to alert or select symbols 
-## that reach are at one pof the alert criteria from the 
-## kStochasticSTUDY.ts.  The logic contained here was used 
-## to optimize the alert section in kStochasticSTUDY.ts.
+## that reach either the bullish reversal trigger or
+## bearish reversal trigger.  This is the same alert 
+## criteria from the kStochasticSTUDY.ts.  The logic 
+## contained here was used to optimize the alert section 
+## in kStochasticSTUDY.ts.
 ##
 ## This Stochastic tries to simplify the user interface
 ## by only requiring one number. The other numbers are
