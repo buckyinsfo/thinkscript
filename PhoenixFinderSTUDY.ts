@@ -295,7 +295,7 @@ def bubble_loc_row6 = last_data_bar_row6 + minor;
 
 AddChartBubble( barNumber() == bubble_loc_row0, 9, symbol_6 + ": " + ts6[minor], if ts6[minor] == 2 then Color.GREEN else if ts6[minor] == 1 then Color.DARK_GREEN else if ts6[minor] == -2 then Color.RED else if ts6[minor] == -1 then Color.DARK_RED else Color.YELLOW, yes);
 AddLabel( show_labels, symbol_6 + ": " + ts6, if ts6 == 2 then Color.GREEN else if ts6 == 1 then Color.DARK_GREEN else if ts6 == -2 then Color.RED else if ts6 == -1 then Color.DARK_RED else Color.YELLOW);
-
+ 
 
 ##### Row 7 #####
 def ts7 = calc_trend( symbol_7 );
@@ -398,6 +398,171 @@ AddChartBubble( barNumber() == bubble_loc_row9, 6,  symbol_9 + ": " + ts9[major]
 AddLabel( show_labels, symbol_9 + ": " + ts9, if ts9 == 2 then Color.GREEN else if ts9 == 1 then Color.DARK_GREEN else if ts9 == -2 then Color.RED else if ts0 == -1 then Color.DARK_RED else Color.YELLOW);
 
 
+##### Row 10 #####
+def ts10 = calc_trend( symbol_10 );
+
+plot row10_TRI = If( ts10 == 100 or ts10 == -100, 5, Double.NaN );
+plot row10_SQ = If( ts10 == 2 or ts10 == -2, 5, Double.NaN );
+plot row10_DASH = If( ts10 == 1 or ts10 == 0 or ts10 == -1, 5, Double.NaN );
+row10_TRI.SetPaintingStrategy( PaintingStrategy.TRIANGLES );
+row10_SQ.SetPaintingStrategy( PaintingStrategy.LINE_VS_SQUARES );
+row10_DASH.SetPaintingStrategy( PaintingStrategy.DASHES );
+
+row10_TRI.SetLineWeight( square_size );
+row10_SQ.SetLineWeight( square_size );
+row10_DASH.SetLineWeight( dash_size );
+
+row10_TRI.AssignValueColor( if ts10 == 100 then Color.Green else if ts10 == -100 then Color.RED else Color.WHITE);
+row10_SQ.AssignValueColor( if ts10 == 2 then Color.GREEN else if ts10 == -2 then Color.RED else Color.WHITE );
+row10_DASH.AssignValueColor( if ts10 > 0 then Color.DARK_GREEN else if ts10 < 0 then Color.DARK_RED else Color.WHITE );
+
+row10_TRI.HideTitle();
+row10_SQ.HideTitle();
+row10_DASH.HideTitle();
+
+row10_TRI.HideBubble();
+row10_SQ.HideBubble();
+row10_DASH.HideBubble();
+
+def last_data_bar_row10 = HighestAll( if IsNaN(close) then Double.NaN else barNumber() );
+def bubble_loc_row10 = last_data_bar_row10 + minor;
+
+AddChartBubble( barNumber() == bubble_loc_row10, 5,  symbol_10 + ": " + ts10[minor], if ts10[minor] == 2 then Color.GREEN else if ts10[minor] == 1 then Color.DARK_GREEN else if ts10[minor] == -2 then Color.RED else if ts10[minor] == -1 then Color.DARK_RED else Color.YELLOW, yes);
+AddLabel( show_labels, symbol_10 + ": " + ts10, if ts10 == 2 then Color.GREEN else if ts10 == 1 then Color.DARK_GREEN else if ts10 == -2 then Color.RED else if ts0 == -1 then Color.DARK_RED else Color.YELLOW);
+
+
+##### Row 11 #####
+def ts11 = calc_trend( symbol_11 );
+
+plot row11_TRI = If( ts11 == 100 or ts11 == -100, 4, Double.NaN );
+plot row11_SQ = If( ts11 == 2 or ts11 == -2, 4, Double.NaN );
+plot row11_DASH = If( ts11 == 1 or ts11 == 0 or ts11 == -1, 4, Double.NaN );
+row11_TRI.SetPaintingStrategy( PaintingStrategy.TRIANGLES );
+row11_SQ.SetPaintingStrategy( PaintingStrategy.LINE_VS_SQUARES );
+row11_DASH.SetPaintingStrategy( PaintingStrategy.DASHES );
+
+row11_TRI.SetLineWeight( square_size );
+row11_SQ.SetLineWeight( square_size );
+row11_DASH.SetLineWeight( dash_size );
+
+row11_TRI.AssignValueColor( if ts11 == 100 then Color.Green else if ts11 == -100 then Color.RED else Color.WHITE);
+row11_SQ.AssignValueColor( if ts11 == 2 then Color.GREEN else if ts11 == -2 then Color.RED else Color.WHITE );
+row11_DASH.AssignValueColor( if ts11 > 0 then Color.DARK_GREEN else if ts11 < 0 then Color.DARK_RED else Color.WHITE );
+
+row11_TRI.HideTitle();
+row11_SQ.HideTitle();
+row11_DASH.HideTitle();
+
+row11_TRI.HideBubble();
+row11_SQ.HideBubble();
+row11_DASH.HideBubble();
+
+def last_data_bar_row11 = HighestAll( if IsNaN(close) then Double.NaN else barNumber() );
+def bubble_loc_row11 = last_data_bar_row11 + major;
+
+AddChartBubble( barNumber() == bubble_loc_row11, 4,  symbol_11 + ": " + ts11[major], if ts11[major] == 2 then Color.GREEN else if ts11[major] == 1 then Color.DARK_GREEN else if ts11[major] == -2 then Color.RED else if ts11[major] == -1 then Color.DARK_RED else Color.YELLOW, yes);
+AddLabel( show_labels, symbol_11 + ": " + ts11, if ts11 == 2 then Color.GREEN else if ts11 == 1 then Color.DARK_GREEN else if ts11 == -2 then Color.RED else if ts0 == -1 then Color.DARK_RED else Color.YELLOW);
+
+
+##### Row 12 #####
+def ts12 = calc_trend( symbol_12 );
+
+plot row12_TRI = If( ts12 == 100 or ts12 == -100, 3, Double.NaN );
+plot row12_SQ = If( ts12 == 2 or ts12 == -2, 3, Double.NaN );
+plot row12_DASH = If( ts12 == 1 or ts12 == 0 or ts12 == -1, 3, Double.NaN );
+
+row12_TRI.SetPaintingStrategy ( PaintingStrategy.TRIANGLES );
+row12_SQ.SetPaintingStrategy( PaintingStrategy.LINE_VS_SQUARES );
+row12_DASH.SetPaintingStrategy( PaintingStrategy.DASHES );
+
+row12_TRI.SetLineWeight( square_size );
+row12_SQ.SetLineWeight( square_size );
+row12_DASH.SetLineWeight( dash_size );
+
+row12_TRI.AssignValueColor( if ts12 == 100 then Color.Green else if ts12 == -100 then Color.RED else Color.WHITE);
+row12_SQ.AssignValueColor( if ts12 == 2 then Color.GREEN else if ts12 == -2 then Color.RED else Color.WHITE );
+row12_DASH.AssignValueColor( if ts12 > 0 then Color.DARK_GREEN else if ts12 < 0 then Color.DARK_RED else Color.WHITE );
+
+row12_TRI.HideTitle();
+row12_SQ.HideTitle();
+row12_DASH.HideTitle();
+
+row12_TRI.HideBubble();
+row12_SQ.HideBubble();
+row12_DASH.HideBubble();
+
+def last_data_bar_row12 = HighestAll( if IsNaN(close) then Double.NaN else barNumber() );
+def bubble_loc_row12 = last_data_bar_row12 + minor;
+
+AddChartBubble( barNumber() == bubble_loc_row0, 3, symbol_12 + ": " + ts12[minor], if ts12[minor] == 2 then Color.GREEN else if ts12[minor] == 1 then Color.DARK_GREEN else if ts12[minor] == -2 then Color.RED else if ts12[minor] == -1 then Color.DARK_RED else Color.YELLOW, yes);
+AddLabel( show_labels, symbol_12 + ": " + ts12, if ts12 == 2 then Color.GREEN else if ts12 == 1 then Color.DARK_GREEN else if ts12 == -2 then Color.RED else if ts12 == -1 then Color.DARK_RED else Color.YELLOW);
+
+
+##### Row 13 #####
+def ts13 = calc_trend( symbol_13 );
+
+plot row13_TRI = If( ts13 == 100 or ts13 == -100, 2, Double.NaN );
+plot row13_SQ = If( ts13 == 2 or ts13 == -2, 2, Double.NaN );
+plot row13_DASH = If( ts13 == 1 or ts13 == 0 or ts13 == -1, 2, Double.NaN );
+row13_TRI.SetPaintingStrategy( PaintingStrategy.TRIANGLES );
+row13_SQ.SetPaintingStrategy( PaintingStrategy.LINE_VS_SQUARES );
+row13_DASH.SetPaintingStrategy( PaintingStrategy.DASHES );
+
+row13_TRI.SetLineWeight( square_size );
+row13_SQ.SetLineWeight( square_size );
+row13_DASH.SetLineWeight( dash_size );
+
+row13_TRI.AssignValueColor( if ts13 == 100 then Color.Green else if ts13 == -100 then Color.RED else Color.WHITE);
+row13_SQ.AssignValueColor( if ts13 == 2 then Color.GREEN else if ts13 == -2 then Color.RED else Color.WHITE );
+row13_DASH.AssignValueColor( if ts13 > 0 then Color.DARK_GREEN else if ts13 < 0 then Color.DARK_RED else Color.WHITE );
+
+row13_TRI.HideTitle();
+row13_SQ.HideTitle();
+row13_DASH.HideTitle();
+
+row13_TRI.HideBubble();
+row13_SQ.HideBubble();
+row13_DASH.HideBubble();
+
+def last_data_bar_row13 = HighestAll( if IsNaN(close) then Double.NaN else barNumber() );
+def bubble_loc_row13 = last_data_bar_row13 + major;
+
+AddChartBubble( barNumber() == bubble_loc_row13, 2,  symbol_13 + ": " + ts13[major], if ts13[major] == 2 then Color.GREEN else if ts13[major] == 1 then Color.DARK_GREEN else if ts13[major] == -2 then Color.RED else if ts13[major] == -1 then Color.DARK_RED else Color.YELLOW, yes);
+AddLabel( show_labels, symbol_13 + ": " + ts13, if ts13 == 2 then Color.GREEN else if ts13 == 1 then Color.DARK_GREEN else if ts13 == -2 then Color.RED else if ts0 == -1 then Color.DARK_RED else Color.YELLOW);
+
+
+##### Row 14 #####
+def ts14 = calc_trend( symbol_14 );
+
+plot row14_TRI = If( ts14 == 100 or ts14 == -100, 1, Double.NaN );
+plot row14_SQ = If( ts14 == 2 or ts14 == -2, 1, Double.NaN );
+plot row14_DASH = If( ts14 == 1 or ts14 == 0 or ts14 == -1, 1, Double.NaN );
+
+row14_TRI.SetPaintingStrategy ( PaintingStrategy.TRIANGLES );
+row14_SQ.SetPaintingStrategy( PaintingStrategy.LINE_VS_SQUARES );
+row14_DASH.SetPaintingStrategy( PaintingStrategy.DASHES );
+
+row14_TRI.SetLineWeight( square_size );
+row14_SQ.SetLineWeight( square_size );
+row14_DASH.SetLineWeight( dash_size );
+
+row14_TRI.AssignValueColor( if ts14 == 100 then Color.Green else if ts14 == -100 then Color.RED else Color.WHITE);
+row14_SQ.AssignValueColor( if ts14 == 2 then Color.GREEN else if ts14 == -2 then Color.RED else Color.WHITE );
+row14_DASH.AssignValueColor( if ts14 > 0 then Color.DARK_GREEN else if ts14 < 0 then Color.DARK_RED else Color.WHITE );
+
+row14_TRI.HideTitle();
+row14_SQ.HideTitle();
+row14_DASH.HideTitle();
+
+row14_TRI.HideBubble();
+row14_SQ.HideBubble();
+row14_DASH.HideBubble();
+
+def last_data_bar_row14 = HighestAll( if IsNaN(close) then Double.NaN else barNumber() );
+def bubble_loc_row14 = last_data_bar_row14 + minor;
+
+AddChartBubble( barNumber() == bubble_loc_row0, 1, symbol_14 + ": " + ts14[minor], if ts14[minor] == 2 then Color.GREEN else if ts14[minor] == 1 then Color.DARK_GREEN else if ts14[minor] == -2 then Color.RED else if ts14[minor] == -1 then Color.DARK_RED else Color.YELLOW, yes);
+AddLabel( show_labels, symbol_14 + ": " + ts14, if ts14 == 2 then Color.GREEN else if ts14 == 1 then Color.DARK_GREEN else if ts14 == -2 then Color.RED else if ts14 == -1 then Color.DARK_RED else Color.YELLOW);
 
 
 
