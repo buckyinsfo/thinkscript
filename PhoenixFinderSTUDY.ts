@@ -565,7 +565,7 @@ AddChartBubble( barNumber() == bubble_loc_row0, 1, symbol_14 + ": " + ts14[minor
 AddLabel( show_labels, symbol_14 + ": " + ts14, if ts14 == 2 then Color.GREEN else if ts14 == 1 then Color.DARK_GREEN else if ts14 == -2 then Color.RED else if ts14 == -1 then Color.DARK_RED else Color.YELLOW);
 
 
-
+## Divider Rule Lines
 plot rule_0 = 5.5;
 rule_0.HideBubble();
 rule_0.HideTitle();
