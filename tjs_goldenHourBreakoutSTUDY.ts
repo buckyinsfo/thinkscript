@@ -101,11 +101,11 @@ def signal = condBreakout
          and condTimeWindow;
 
 # -------- Plot: opening range high line --------
-plot ORHigh = if regularSession and afterOpeningRange then orHigh
-              else Double.NaN;
-ORHigh.SetDefaultColor(Color.GRAY);
-ORHigh.SetStyle(Curve.SHORT_DASH);
-ORHigh.SetLineWeight(2);
+plot ORHighLine = if regularSession and afterOpeningRange then orHigh
+                  else Double.NaN;
+ORHighLine.SetDefaultColor(Color.GRAY);
+ORHighLine.SetStyle(Curve.SHORT_DASH);
+ORHighLine.SetLineWeight(2);
 
 # -------- Plot: green triangle above breakout bar --------
 plot BreakoutArrow = if signal then high else Double.NaN;
